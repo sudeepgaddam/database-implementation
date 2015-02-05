@@ -34,6 +34,13 @@ public:
 	// a zero if there were no records on the page
 	int GetFirst (Record *firstOne);
 
+	// the returns the current record in page; Advances current;
+	//returns a zero if there are no more records in page
+	int GetCurrent (Record *firstOne);
+
+	// Moves the current in two way list to start
+	void MoveToStart ();
+
 	// this appends the record to the end of a page.  The return value
 	// is a one on success and a zero if there is no more space
 	// note that the record is consumed so it will have no value after
