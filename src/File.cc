@@ -62,15 +62,16 @@ int Page :: GetFirst (Record *firstOne) {
 	return 1;
 }
 
-int Page :: GetCurrent (Record *currentOne) {
+int Page :: GetCurrent (Record &currentOne) {
     //Get current Record
-	currentOne = myRecs->Current (0);
+	return 0;
+/*	currentOne = myRecs->Current (0);
     if (currentOne == NULL) {
         return 0;
     } else {
         myRecs->Advance();
         return 1;
-    }
+    }*/
 }
 
 void Page :: MoveToStart() {

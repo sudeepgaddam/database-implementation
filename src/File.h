@@ -36,7 +36,7 @@ public:
 
 	// the returns the current record in page; Advances current;
 	//returns a zero if there are no more records in page
-	int GetCurrent (Record *firstOne);
+	int GetCurrent (Record &firstOne);
 
 	// Moves the current in two way list to start
 	void MoveToStart ();
