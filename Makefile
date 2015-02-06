@@ -20,8 +20,8 @@ sampletest.out: libgtest.a
 	$(DD) $(SRC_DIR)/sampletest.cc $(BIN_DIR)/libgtest.a -o $(BIN_DIR)/sampletest
 	mv *.o $(BIN_DIR)
 
-test.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o test.o
-	$(CC) -o test.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o test.o -lfl
+test: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o test.o
+	$(CC) -o test Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o test.o -lfl
 	mv *.o $(BIN_DIR)
 	mv test $(BIN_DIR)
 	
@@ -32,7 +32,6 @@ main: Record.o Comparison.o ComparisonEngine.o Schema.o File.o y.tab.o lex.yy.o 
 	
 test.o: 
 	$(CC) -g -c $(SRC_DIR)/test.cc
-	mv test $(BIN_DIR)
 
 main.o: libgtest.a  $(SRC_DIR)/main.cc
 	$(DD) $(BIN_DIR)/libgtest.a -g -c $(SRC_DIR)/main.cc

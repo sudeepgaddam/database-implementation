@@ -8,7 +8,11 @@
 #include "Defs.h"
 
 // stub file .. replace it with your own DBFile.cc
-
+DBFile::~DBFile(){
+	delete heapfile;
+	delete read_page;
+	delete write_page;
+}
 DBFile::DBFile () {
 }
 
@@ -20,7 +24,7 @@ int DBFile::Create (char *f_path, fType f_type, void *startup) {
 }
 
 void DBFile::Add (Record &rec) {
-    int ret;
+   /* int ret;
     //Add to Page
     ret = write_page->Append(*&rec); 
     if (ret == 0) {
@@ -29,6 +33,7 @@ void DBFile::Add (Record &rec) {
         write_page->EmptyItOut();
         write_page->Append(rec);
     }
+   */
 }
 
 void DBFile::Load (Schema &f_schema, char *loadpath) {
