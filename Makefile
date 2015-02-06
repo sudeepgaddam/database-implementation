@@ -31,7 +31,7 @@ main: Record.o Comparison.o ComparisonEngine.o Schema.o File.o y.tab.o lex.yy.o 
 	mv main $(BIN_DIR)
 	
 test.o: 
-	$(CC) -g -c $(SRC_DIR)/test.cc
+	$(DD) -g -c $(SRC_DIR)/test.cc
 
 main.o: libgtest.a  $(SRC_DIR)/main.cc
 	$(DD) $(BIN_DIR)/libgtest.a -g -c $(SRC_DIR)/main.cc
