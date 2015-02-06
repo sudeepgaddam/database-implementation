@@ -10,11 +10,12 @@
 // stub file .. replace it with your own DBFile.cc
 
 DBFile::DBFile () {
+    cur_page = 0;
+    read_page = new Page();
 }
 
 int DBFile::Create (char *f_path, fType f_type, void *startup) {
     heapfile = new File();
-    read_page = new Page();
     write_page   = new Page();
     heapfile->Open(0, f_path);
 }
@@ -22,12 +23,12 @@ int DBFile::Create (char *f_path, fType f_type, void *startup) {
 void DBFile::Add (Record &rec) {
     int ret;
     //Add to Page
-    ret = write_page->Append(*&rec); 
+    ret = write_page->Append(&rec); 
     if (ret == 0) {
         //Could not fit in page; Add it to File
-        heapfile->AddPage(write_page, GetLength());
+        heapfile->AddPage(write_page, heapfile->GetLength());
         write_page->EmptyItOut();
-        write_page->Append(rec);
+        write_page->Append(&rec);
     }
 }
 
@@ -47,10 +48,12 @@ int DBFile::Open (char *f_path) {
 }
 
 void DBFile::MoveFirst () {
+    //If no pages in File, moveFirst to write Page
+    // If Pages in File,  get the first page from file and movetoStart
 
-    if (cur_page != 0) {
-        heapfile->GetPage(read_page, 0);
-        cur_page = 0;
+    if (heapfile->GetLength() == 0 ) {
+        heapfile->GetPage(read_page, 1);
+        cur_page = 1;
     }   //Move to Start however
         read_page->MoveToStart();
     
@@ -68,13 +71,13 @@ int DBFile::GetNext (Record &fetchme) {
         read_page = new Page();
         heapfile->GetPage(read_page, cur_page);
     }
-    ret = read_page->GetCurrent(fetchme);
+    ret = read_page->GetCurrent(&fetchme);
     if (ret == 0) {
         cur_page+=1;
         if (cur_page < heapfile->GetLength()) {
             heapfile->GetPage(read_page, cur_page);
             read_page->MoveToStart();
-            read_page->GetCurrent(fetchme);
+            read_page->GetCurrent(&fetchme);
         }
 
 }

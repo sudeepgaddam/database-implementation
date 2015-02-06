@@ -17,8 +17,9 @@ class DBFile {
 private:
     File *heapfile;
     Page *write_page; //Record writes go into this page
-    Page *read_page; //This page is only for reading
-    int cur_page;
+    Page *read_page;  //This page is only for reading
+    int cur_page;     //Current Page being read. 0 means no pages to read
+    bool dirty;       //If true, current page being read is dirty(Not yet written to disk). 
     fType type;
 
 public:
