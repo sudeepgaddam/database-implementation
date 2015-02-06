@@ -14,14 +14,15 @@ DBFile::DBFile () {
 
 int DBFile::Create (char *f_path, fType f_type, void *startup) {
     heapfile = new File();
+    read_page = new Page();
     write_page   = new Page();
     heapfile->Open(0, f_path);
 }
 
-void DBFile::Add (Record *rec) {
+void DBFile::Add (Record &rec) {
     int ret;
     //Add to Page
-    ret = write_page->Append(rec); 
+    ret = write_page->Append(*&rec); 
     if (ret == 0) {
         //Could not fit in page; Add it to File
         heapfile->AddPage(write_page, GetLength());
@@ -35,7 +36,7 @@ void DBFile::Load (Schema &f_schema, char *loadpath) {
 
     FILE *tableFile = fopen (loadpath, "r");
 
-    while (temp_rec.SuckNextRecord(f_schema, tableFile) == 1) {
+    while (temp_rec.SuckNextRecord(&f_schema, tableFile) == 1) {
         Add(temp_rec);
     }
 }
@@ -70,7 +71,7 @@ int DBFile::GetNext (Record &fetchme) {
     ret = read_page->GetCurrent(fetchme);
     if (ret == 0) {
         cur_page+=1;
-        if (cur_page < heap_file->curLength()) {
+        if (cur_page < heapfile->GetLength()) {
             heapfile->GetPage(read_page, cur_page);
             read_page->MoveToStart();
             read_page->GetCurrent(fetchme);

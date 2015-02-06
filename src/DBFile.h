@@ -49,7 +49,7 @@ public:
 	void Load (Schema &myschema, char *loadpath);
 
 	void MoveFirst ();
-	void Add (Record *addme);
+	void Add (Record &addme);
 	int GetNext (Record &fetchme);
 	int GetNext (Record &fetchme, CNF &cnf, Record &literal);
 
