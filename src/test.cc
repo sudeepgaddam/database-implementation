@@ -24,7 +24,14 @@ void test1 () {
 	cout << " tpch file will be loaded from " << tbl_path << endl;
 
 	dbfile.Load (*(rel->schema ()), tbl_path);
-	dbfile.Close ();
+	// @mytest after Load()
+        Record rec;	
+	if (dbfile.GetNext(rec)==1){
+		cout << "got record" << endl;
+		rec.Print(rel->schema());
+	}
+	cout << "FINISH" << endl;
+	dbfile.Close();
 }
 
 // sequential scan of a DBfile 

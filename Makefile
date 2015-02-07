@@ -1,6 +1,6 @@
 # default config
 tag = -i
-CC = g++ -O2 -Wno-deprecated 
+CC = g++ -O2 -Wno-deprecated -w
 
 # find current directory and use /src and /bin
 # include /data and /logs if necessary
@@ -37,7 +37,7 @@ main.o: libgtest.a  $(SRC_DIR)/main.cc
 	$(DD) $(BIN_DIR)/libgtest.a -g -c $(SRC_DIR)/main.cc
 
 libgtest.a: 
-	g++ -isystem $(GTEST_DIR)/include -I$(GTEST_DIR) -pthread -c $(GTEST_DIR)/src/gtest-all.cc
+	g++ -w -isystem $(GTEST_DIR)/include -I$(GTEST_DIR) -pthread -c $(GTEST_DIR)/src/gtest-all.cc
 	ar -rv libgtest.a gtest-all.o	
 	mv libgtest.a $(CURR_DIR)/bin
 	
@@ -62,7 +62,7 @@ Schema.o: $(SRC_DIR)/Schema.cc
 y.tab.o: $(SRC_DIR)/Parser.y
 	yacc -d $(SRC_DIR)/Parser.y
 	sed $(tag) $(SRC_DIR)/y.tab.c -e "s/  __attribute__ ((__unused__))$$/# ifndef __cplusplus\n  __attribute__ ((__unused__));\n# endif/" 
-	g++ -c $(SRC_DIR)/y.tab.c
+	g++ -w -c $(SRC_DIR)/y.tab.c
 	mv y.tab.c $(SRC_DIR)
 	mv y.tab.h $(SRC_DIR)
 

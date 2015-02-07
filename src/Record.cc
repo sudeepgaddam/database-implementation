@@ -320,6 +320,8 @@ void Record :: Print (Schema *mySchema) {
 
 	int n = mySchema->GetNumAtts();
 	Attribute *atts = mySchema->GetAtts();
+	
+	cout << "Record-Num of Attrs: " << n << endl;
 
 	// loop through all of the attributes
 	for (int i = 0; i < n; i++) {

@@ -13,7 +13,12 @@ struct Attribute {
 
 	char *name;
 	Type myType;
+
+	~Attribute(){
+		delete name;
+	}
 };
+
 
 class OrderMaker;
 class Schema {
@@ -51,6 +56,7 @@ public:
 	int GetSortOrder (OrderMaker &order);
 
 	~Schema ();
+	
 
 };
 

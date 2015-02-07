@@ -22,6 +22,8 @@ public:
 	// constructor
 	Page ();
 	virtual ~Page ();
+	
+	int GetNumRecs();
 
 	// this takes a page and writes its binary representation to bits
 	void ToBinary (char *bits);

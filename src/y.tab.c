@@ -62,7 +62,7 @@
 
 
 /* Copy the first part of user declarations.  */
-#line 2 "/cise/homes/sandeep/Desktop/db-implementation/src/Parser.y" /* yacc.c:339  */
+#line 2 "/home/sandeep/Desktop/db-implementation/src/Parser.y" /* yacc.c:339  */
 
 
 	#include "ParseTree.h" 
@@ -135,7 +135,7 @@ extern int yydebug;
 typedef union YYSTYPE YYSTYPE;
 union YYSTYPE
 {
-#line 20 "/cise/homes/sandeep/Desktop/db-implementation/src/Parser.y" /* yacc.c:355  */
+#line 20 "/home/sandeep/Desktop/db-implementation/src/Parser.y" /* yacc.c:355  */
 
  	struct Operand *myOperand;
 	struct ComparisonOp *myComparison; 
@@ -1235,7 +1235,7 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 56 "/cise/homes/sandeep/Desktop/db-implementation/src/Parser.y" /* yacc.c:1646  */
+#line 56 "/home/sandeep/Desktop/db-implementation/src/Parser.y" /* yacc.c:1646  */
     {
 	// here we need to pre-pend the OrList to the AndList
 	// first we allocate space for this node
@@ -1253,7 +1253,7 @@ yyreduce:
     break;
 
   case 3:
-#line 71 "/cise/homes/sandeep/Desktop/db-implementation/src/Parser.y" /* yacc.c:1646  */
+#line 71 "/home/sandeep/Desktop/db-implementation/src/Parser.y" /* yacc.c:1646  */
     {
 	// just return the OrList!
 	(yyval.myAndList) = (struct AndList *) malloc (sizeof (struct AndList));
@@ -1265,7 +1265,7 @@ yyreduce:
     break;
 
   case 4:
-#line 81 "/cise/homes/sandeep/Desktop/db-implementation/src/Parser.y" /* yacc.c:1646  */
+#line 81 "/home/sandeep/Desktop/db-implementation/src/Parser.y" /* yacc.c:1646  */
     { 
 	// here we have to hang the condition off the left of the OrList
 	(yyval.myOrList) = (struct OrList *) malloc (sizeof (struct OrList));	
@@ -1276,7 +1276,7 @@ yyreduce:
     break;
 
   case 5:
-#line 89 "/cise/homes/sandeep/Desktop/db-implementation/src/Parser.y" /* yacc.c:1646  */
+#line 89 "/home/sandeep/Desktop/db-implementation/src/Parser.y" /* yacc.c:1646  */
     {
 	// nothing to hang off of the right
 	(yyval.myOrList) = (struct OrList *) malloc (sizeof (struct OrList));
@@ -1287,7 +1287,7 @@ yyreduce:
     break;
 
   case 6:
-#line 98 "/cise/homes/sandeep/Desktop/db-implementation/src/Parser.y" /* yacc.c:1646  */
+#line 98 "/home/sandeep/Desktop/db-implementation/src/Parser.y" /* yacc.c:1646  */
     {
 	// in this case we have a simple literal/variable comparison
 	(yyval.myComparison) = (yyvsp[-1].myComparison);
@@ -1298,7 +1298,7 @@ yyreduce:
     break;
 
   case 7:
-#line 107 "/cise/homes/sandeep/Desktop/db-implementation/src/Parser.y" /* yacc.c:1646  */
+#line 107 "/home/sandeep/Desktop/db-implementation/src/Parser.y" /* yacc.c:1646  */
     {
 	// construct and send up the comparison
 	(yyval.myComparison) = (struct ComparisonOp *) malloc (sizeof (struct ComparisonOp));
@@ -1308,7 +1308,7 @@ yyreduce:
     break;
 
   case 8:
-#line 114 "/cise/homes/sandeep/Desktop/db-implementation/src/Parser.y" /* yacc.c:1646  */
+#line 114 "/home/sandeep/Desktop/db-implementation/src/Parser.y" /* yacc.c:1646  */
     {
 	// construct and send up the comparison
 	(yyval.myComparison) = (struct ComparisonOp *) malloc (sizeof (struct ComparisonOp));
@@ -1318,7 +1318,7 @@ yyreduce:
     break;
 
   case 9:
-#line 121 "/cise/homes/sandeep/Desktop/db-implementation/src/Parser.y" /* yacc.c:1646  */
+#line 121 "/home/sandeep/Desktop/db-implementation/src/Parser.y" /* yacc.c:1646  */
     {
 	// construct and send up the comparison
 	(yyval.myComparison) = (struct ComparisonOp *) malloc (sizeof (struct ComparisonOp));
@@ -1328,7 +1328,7 @@ yyreduce:
     break;
 
   case 10:
-#line 129 "/cise/homes/sandeep/Desktop/db-implementation/src/Parser.y" /* yacc.c:1646  */
+#line 129 "/home/sandeep/Desktop/db-implementation/src/Parser.y" /* yacc.c:1646  */
     {
 	// construct and send up the operand containing the string
 	(yyval.myOperand) = (struct Operand *) malloc (sizeof (struct Operand));
@@ -1339,7 +1339,7 @@ yyreduce:
     break;
 
   case 11:
-#line 137 "/cise/homes/sandeep/Desktop/db-implementation/src/Parser.y" /* yacc.c:1646  */
+#line 137 "/home/sandeep/Desktop/db-implementation/src/Parser.y" /* yacc.c:1646  */
     {
 	// construct and send up the operand containing the FP number
 	(yyval.myOperand) = (struct Operand *) malloc (sizeof (struct Operand));
@@ -1350,7 +1350,7 @@ yyreduce:
     break;
 
   case 12:
-#line 145 "/cise/homes/sandeep/Desktop/db-implementation/src/Parser.y" /* yacc.c:1646  */
+#line 145 "/home/sandeep/Desktop/db-implementation/src/Parser.y" /* yacc.c:1646  */
     {
 	// construct and send up the operand containing the integer
 	(yyval.myOperand) = (struct Operand *) malloc (sizeof (struct Operand));
@@ -1361,7 +1361,7 @@ yyreduce:
     break;
 
   case 13:
-#line 153 "/cise/homes/sandeep/Desktop/db-implementation/src/Parser.y" /* yacc.c:1646  */
+#line 153 "/home/sandeep/Desktop/db-implementation/src/Parser.y" /* yacc.c:1646  */
     {
 	// construct and send up the operand containing the name 
 	(yyval.myOperand) = (struct Operand *) malloc (sizeof (struct Operand));
@@ -1600,6 +1600,6 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 161 "/cise/homes/sandeep/Desktop/db-implementation/src/Parser.y" /* yacc.c:1906  */
+#line 161 "/home/sandeep/Desktop/db-implementation/src/Parser.y" /* yacc.c:1906  */
 
 

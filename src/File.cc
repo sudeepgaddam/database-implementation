@@ -9,6 +9,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+int Page :: GetNumRecs(){
+	return numRecs;
+}
 
 Page :: Page () {
 	curSizeInBytes = sizeof (int);
@@ -63,6 +66,7 @@ int Page :: GetFirst (Record *firstOne) {
 }
 
 int Page :: GetCurrent (Record *currentOne) {
+	cout << "twoWay list rightlength: " << myRecs->RightLength() << endl;
     	//Get current Record
 	if (!myRecs->RightLength ()) {
             return 0;
