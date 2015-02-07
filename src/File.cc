@@ -65,15 +65,17 @@ int Page :: GetFirst (Record *firstOne) {
 	return 1;
 }
 
+// fetch current record and store the record datastructure in bits
 int Page :: GetCurrent (Record *currentOne) {
 	cout << "twoWay list rightlength: " << myRecs->RightLength() << endl;
     	//Get current Record
 	if (!myRecs->RightLength ()) {
             return 0;
         } else {
-	    currentOne = myRecs->Current (0);
-            myRecs->Advance();
-            return 1;
+	   Record * tmpRec = myRecs->Current (0);
+	   currentOne->Copy(tmpRec);
+           myRecs->Advance();
+           return 1;
         }
 }
 
