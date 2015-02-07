@@ -26,8 +26,12 @@ void test1 () {
 	dbfile.Load (*(rel->schema ()), tbl_path);
 	// @mytest after Load()
         Record rec;
+	Record temp;
 	int count=1;	
-	while (dbfile.GetNext(rec)==1 && (count++ < 10)){
+	dbfile.MoveFirst ();
+	while (dbfile.GetNext(rec)==1 && (count++ < 100)){
+		if (count == 5) 
+        dbfile.MoveFirst ();
 		rec.Print(rel->schema());
 	}
 	cout << "FINISH" << endl;
@@ -78,8 +82,9 @@ void test3 () {
 	while (dbfile.GetNext (temp, cnf, literal) == 1) {
 		counter += 1;
 		temp.Print (rel->schema());
-		if (counter % 10000 == 0) {
+		if (counter > 100 ) {
 			cout << counter << "\n";
+			break;
 		}
 	}
 	cout << " selected " << counter << " recs \n";

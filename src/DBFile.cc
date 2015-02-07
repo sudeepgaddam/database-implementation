@@ -75,19 +75,7 @@ int DBFile::Open (char *f_path) {
 }
 
 void DBFile::MoveFirst () {
-    // If Pages in File,  get the first page from file and movetoStart
-    //If no pages in File, 
-    // If write page is already copied, move to start;
-    //      else copy write page to read page and move to start; Mark Dirty
-
-    if (heapfile->GetLength() > 0 ) {
-        heapfile->GetPage(read_page, 0);
-        cur_page = 1;
-        read_page->MoveToStart(); //since get page advances the twoway list pointer, in FromBinary()
-    } else {
-	
-    }
-    
+        cur_page = 0;
 }
 
 int DBFile::Close () {
@@ -100,43 +88,62 @@ int DBFile::Close () {
  * and get first record
  */
 int DBFile::GetNext (Record &fetchme) {
-	int ret;
+	int ret = 0;
 	#ifdef DBFile_Debug
 	cout << "heapfile pages: " << heapfile->GetLength() << endl;
 	#endif
 	if ( cur_page == 0) {
-		cur_page+=1;
-       		 if(heapfile->GetLength()!=0){
+       		 if(heapfile->GetLength() > 0){
 	#ifdef DBFile_Debug
 			cout << "Getting Page " << cur_page <<endl;
 	#endif
+		        cur_page+=1;
+            		read_page->EmptyItOut();
 			heapfile->GetPage(read_page, cur_page-1);
                         read_page->MoveToStart(); //since get page advances the twoway list pointer, in FromBinary()
 		 }else{
 			if (write_page == NULL) {
 			    cout << "Error:DBFile not initialised" << endl;
+			    return 0;
 			} else if (write_page->GetNumRecs() > 0) {
-				//Copy write page to read page
+		            //Copy write page to read page
 			    cout << "Reading Records from write page" << endl;
-			    
+                            heapfile->AddPage(write_page, cur_page);
+                            write_page->EmptyItOut();
+            		    read_page->EmptyItOut();
+			    heapfile->GetPage(read_page, cur_page);
+                            read_page->MoveToStart(); //since get page advances the twoway list pointer, in FromBinary()
+		            cur_page+=1;
  			}
 		 }
-	
     	}
 	cout << "got page? cur_page: " << cur_page << endl;	
-	cout << "Nof of recs in cur_page: " << read_page->GetNumRecs() << endl;
+	cout << "No of recs in cur_page: " << read_page->GetNumRecs() << endl;
+
     	ret = read_page->GetCurrent(&fetchme);
 	cout << "got record? ret: " << ret << endl;
     	if (ret == 0) {
-        	cur_page+=1;
-		//Get next page from file to read_page and get the first record
-        	if (cur_page < heapfile->GetLength()) {
-            		heapfile->GetPage(read_page, cur_page-1);
+		/*
+		 * If curpage is 1, load next page from file only if File length is 3 because 
+		 * there is an empty page 
+		 */
+        	if (cur_page < (heapfile->GetLength() -1)) {
+            		read_page->EmptyItOut();
+			heapfile->GetPage(read_page, cur_page);
             		read_page->MoveToStart();
             		read_page->GetCurrent(&fetchme);
+		        cur_page+=1;
 	    		ret = 1;
 		} else if (write_page->GetNumRecs() > 0) {
-			   //Copy write page to read page;Mark dirty
+                            heapfile->AddPage(write_page, cur_page);
+                            write_page->EmptyItOut();
+            		    read_page->EmptyItOut();
+			    heapfile->GetPage(read_page, cur_page);
+                            read_page->MoveToStart(); //since get page advances the twoway list pointer, in FromBinary()
+            		    read_page->GetCurrent(&fetchme);
+		            cur_page+=1;
+			    ret = 1;
+			//Copy write page to read page;Mark dirty
 	    		//we have reached end in DBFile, if we have some info in write_page, getRecord from it   
 		}
     	}

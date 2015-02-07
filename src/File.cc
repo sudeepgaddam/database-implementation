@@ -29,6 +29,10 @@ Page :: ~Page () {
 	delete myRecs;
 }
 
+Page :: Page(const Page &obj) {
+
+
+}
 
 void Page :: EmptyItOut () {
 

@@ -22,6 +22,8 @@ public:
 	// constructor
 	Page ();
 	virtual ~Page ();
+	//Copy Constructor
+	Page (const Page &obj);
 	
 	int GetNumRecs();
 
