@@ -8,7 +8,16 @@
 #include "DBFile.h"
 #include "Defs.h"
 
-// stub file .. replace it with your own DBFile.cc
+#define DEBUG
+
+#ifdef DEBUG
+#define DEBUG_STDERR(x) (std::cerr << (x))
+#define DEBUG_STDOUT(x) (std::cout << (x))
+#else 
+#define DEBUG_STDERR(x)
+#define DEBUG_STDOUT(x)
+#endif
+
 DBFile::~DBFile(){
 	delete heapfile;
 	delete read_page;
@@ -66,14 +75,18 @@ int DBFile::Open (char *f_path) {
 }
 
 void DBFile::MoveFirst () {
-    //If no pages in File, moveFirst to write Page
     // If Pages in File,  get the first page from file and movetoStart
+    //If no pages in File, 
+    // If write page is already copied, move to start;
+    //      else copy write page to read page and move to start; Mark Dirty
 
-    if (heapfile->GetLength() == 0 ) {
-        heapfile->GetPage(read_page, 1);
+    if (heapfile->GetLength() > 0 ) {
+        heapfile->GetPage(read_page, 0);
         cur_page = 1;
-    }   //Move to Start however
-        read_page->MoveToStart();
+        read_page->MoveToStart(); //since get page advances the twoway list pointer, in FromBinary()
+    } else {
+	
+    }
     
 }
 
@@ -88,20 +101,30 @@ int DBFile::Close () {
  */
 int DBFile::GetNext (Record &fetchme) {
 	int ret;
+	#ifdef DBFile_Debug
 	cout << "heapfile pages: " << heapfile->GetLength() << endl;
+	#endif
 	if ( cur_page == 0) {
 		cur_page+=1;
        		 if(heapfile->GetLength()!=0){
+	#ifdef DBFile_Debug
 			cout << "Getting Page " << cur_page <<endl;
+	#endif
 			heapfile->GetPage(read_page, cur_page-1);
+                        read_page->MoveToStart(); //since get page advances the twoway list pointer, in FromBinary()
 		 }else{
-			//we have records in read_page but DBFile is empty, so read records from write_page
+			if (write_page == NULL) {
+			    cout << "Error:DBFile not initialised" << endl;
+			} else if (write_page->GetNumRecs() > 0) {
+				//Copy write page to read page
+			    cout << "Reading Records from write page" << endl;
+			    
+ 			}
 		 }
 	
     	}
 	cout << "got page? cur_page: " << cur_page << endl;	
 	cout << "Nof of recs in cur_page: " << read_page->GetNumRecs() << endl;
-        read_page->MoveToStart(); //since get page advances the twoway list pointer, in FromBinary()
     	ret = read_page->GetCurrent(&fetchme);
 	cout << "got record? ret: " << ret << endl;
     	if (ret == 0) {
@@ -112,7 +135,8 @@ int DBFile::GetNext (Record &fetchme) {
             		read_page->MoveToStart();
             		read_page->GetCurrent(&fetchme);
 	    		ret = 1;
-        	} else {
+		} else if (write_page->GetNumRecs() > 0) {
+			   //Copy write page to read page;Mark dirty
 	    		//we have reached end in DBFile, if we have some info in write_page, getRecord from it   
 		}
     	}
@@ -120,5 +144,11 @@ int DBFile::GetNext (Record &fetchme) {
 }
 
 int DBFile::GetNext (Record &fetchme, CNF &cnf, Record &literal) {
+	int ret;
+        ComparisonEngine comp;
+	do {
+	    if (GetNext(fetchme) == 1) 
+            ret = comp.Compare (&fetchme, &literal, &cnf); 
+	} while(ret == 0);
 }
 

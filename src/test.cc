@@ -25,9 +25,9 @@ void test1 () {
 
 	dbfile.Load (*(rel->schema ()), tbl_path);
 	// @mytest after Load()
-        Record rec;	
-	if (dbfile.GetNext(rec)==1){
-		cout << "got record" << endl;
+        Record rec;
+	int count=1;	
+	while (dbfile.GetNext(rec)==1 && (count++ < 10)){
 		rec.Print(rel->schema());
 	}
 	cout << "FINISH" << endl;
@@ -65,7 +65,11 @@ void test3 () {
 	rel->get_cnf (cnf, literal);
 
 	DBFile dbfile;
+	char tbl_path[100]; // construct path of the tpch flat text file
+	sprintf (tbl_path, "%s%s.tbl", tpch_dir, rel->name()); 
+	dbfile.Create (rel->path(), heap, NULL);
 	dbfile.Open (rel->path());
+	dbfile.Load (*(rel->schema ()), tbl_path);
 	dbfile.MoveFirst ();
 
 	Record temp;
