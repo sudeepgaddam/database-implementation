@@ -13,10 +13,11 @@ extern struct AndList *final;
 
 int main(){
 	//load page full of records and write to disk
-	Schema mSchema("catalog", "lineitem");
+	Schema mSchema("/cise/homes/sandeep/Desktop/db-implementation/data/catalog", "lineitem");
 	Page page;
-	FILE *tableFile = fopen("/home/sandeep/Desktop/tpc-h/lineitem.tbl","r");	Record mRec;
-	
+	FILE *tableFile = fopen("/cise/homes/sandeep/Desktop/db-implementation/tpc-h/lineitem.tbl","r");	Record mRec;
+	if(!tableFile) return 0;
+	cout << "fopen success" << endl;
 	while(true){
 		mRec.SuckNextRecord(&mSchema, tableFile);
 		mRec.Print(&mSchema);
@@ -25,11 +26,11 @@ int main(){
 	}
 	off_t offset = 1;
 	File mFile;
-	mFile.Open(0, "/home/sandeep/Desktop/foo.file");
+	mFile.Open(0, "/cise/homes/sandeep/Desktop/foo.file");
 	mFile.AddPage(&page,offset);
 	mFile.Close();
 	//retrive page from disk and display records
-	mFile.Open(1, "/home/sandeep/Desktop/foo.file");
+	mFile.Open(1, "/cise/homes/sandeep/Desktop/foo.file");
 	Page rPage;
 	Record rRec;
 	mFile.GetPage(&rPage, offset);

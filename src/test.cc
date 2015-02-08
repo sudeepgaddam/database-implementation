@@ -4,9 +4,9 @@
 #include "test.h"
 
 // make sure that the file path/dir information below is correct
-char *dbfile_dir = "/home/sandeep/Desktop/db-implementation/bin/"; // dir where binary heap files should be stored
-char *tpch_dir ="/home/sandeep/Desktop/tpc-h/"; //"/cise/tmp/dbi_sp11/DATA/10M/"; // dir where dbgen tpch files (extension *.tbl) can be found
-char *catalog_path = "/home/sandeep/Desktop/db-implementation/data/catalog"; // full path of the catalog file
+char *dbfile_dir = "bin/"; // dir where binary heap files should be stored
+char *tpch_dir ="/cise/tmp/dbi_sp11/DATA/10M/"; //"/cise/tmp/dbi_sp11/DATA/10M/"; // dir where dbgen tpch files (extension *.tbl) can be found
+char *catalog_path = "data/catalog"; // full path of the catalog file
 
 using namespace std;
 
@@ -30,11 +30,8 @@ void test1 () {
 	int count=1;	
 	dbfile.MoveFirst ();
 	while (dbfile.GetNext(rec)==1 && (count++ < 100)){
-		if (count == 5) 
-        dbfile.MoveFirst ();
 		rec.Print(rel->schema());
 	}
-	cout << "FINISH" << endl;
 	dbfile.Close();
 }
 
@@ -42,11 +39,16 @@ void test1 () {
 void test2 () {
 
 	DBFile dbfile;
+
+	char tbl_path[100]; // construct path of the tpch flat text file
+	sprintf (tbl_path, "%s%s.tbl", tpch_dir, rel->name()); 
+
+	dbfile.Create(rel->path(), heap, NULL);
 	dbfile.Open (rel->path());
+	dbfile.Load (*(rel->schema ()), tbl_path);
 	dbfile.MoveFirst ();
 
 	Record temp;
-
 	int counter = 0;
 	while (dbfile.GetNext (temp) == 1) {
 		counter += 1;

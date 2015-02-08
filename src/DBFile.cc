@@ -32,6 +32,7 @@ int DBFile::Create (char *f_path, fType f_type, void *startup) {
     heapfile = new File();
     write_page   = new Page();
     heapfile->Open(0, f_path);
+    return 1;
 }
     
 /* Add to records to write page, if write page is full
@@ -53,10 +54,12 @@ void DBFile::Add (Record &rec) {
 void DBFile::Load (Schema &f_schema, char *loadpath) {
     Record temp_rec;
 
-    FILE *tableFile = fopen (loadpath, "r");
-
-    while (temp_rec.SuckNextRecord(&f_schema, tableFile) == 1) {
-        Add(temp_rec);
+    FILE *tableFile =  fopen(loadpath, "r");
+    
+    if(tableFile){
+    	while (temp_rec.SuckNextRecord(&f_schema, tableFile) == 1) {
+        	Add(temp_rec);
+    	}
     }
     #if 0
         Page rPage;
@@ -72,6 +75,7 @@ void DBFile::Load (Schema &f_schema, char *loadpath) {
 int DBFile::Open (char *f_path) {
     //todo:check again
     heapfile->Open(1, f_path);
+    return 1;
 }
 
 void DBFile::MoveFirst () {
@@ -79,7 +83,7 @@ void DBFile::MoveFirst () {
 }
 
 int DBFile::Close () {
-    heapfile->Close();
+    return (heapfile->Close() < 0)?0:1;
 }
 
 /*
@@ -117,11 +121,12 @@ int DBFile::GetNext (Record &fetchme) {
  			}
 		 }
     	}
-	cout << "got page? cur_page: " << cur_page << endl;	
-	cout << "No of recs in cur_page: " << read_page->GetNumRecs() << endl;
+	#ifdef DBFile_Debug
+		cout << "got page? cur_page: " << cur_page << endl;	
+		cout << "No of recs in cur_page: " << read_page->GetNumRecs() << endl;
+        #endif
 
     	ret = read_page->GetCurrent(&fetchme);
-	cout << "got record? ret: " << ret << endl;
     	if (ret == 0) {
 		/*
 		 * If curpage is 1, load next page from file only if File length is 3 because 
@@ -155,7 +160,9 @@ int DBFile::GetNext (Record &fetchme, CNF &cnf, Record &literal) {
         ComparisonEngine comp;
 	do {
 	    if (GetNext(fetchme) == 1) 
-            ret = comp.Compare (&fetchme, &literal, &cnf); 
+            	ret = comp.Compare (&fetchme, &literal, &cnf); 
+	    else return 0;
 	} while(ret == 0);
+	return ret;
 }
 

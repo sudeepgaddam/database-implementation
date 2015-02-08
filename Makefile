@@ -16,6 +16,10 @@ ifdef linux
 tag = -n
 endif
 
+googletest: libgtest.a test
+	$(DD) $(SRC_DIR)/googletest.cc $(BIN_DIR)/libgtest.a -o $(BIN_DIR)/googletest $(BIN_DIR)/Record.o $(BIN_DIR)/Comparison.o $(BIN_DIR)/ComparisonEngine.o $(BIN_DIR)/Schema.o $(BIN_DIR)/File.o $(BIN_DIR)/y.tab.o $(BIN_DIR)/lex.yy.o $(BIN_DIR)/DBFile.o
+	#mv *.o $(BIN_DIR)
+
 sampletest.out: libgtest.a
 	$(DD) $(SRC_DIR)/sampletest.cc $(BIN_DIR)/libgtest.a -o $(BIN_DIR)/sampletest
 	mv *.o $(BIN_DIR)
@@ -27,8 +31,8 @@ test: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o 
 	
 main: Record.o Comparison.o ComparisonEngine.o Schema.o File.o y.tab.o lex.yy.o main.o DBFile.o
 	$(CC) -o main Record.o Comparison.o ComparisonEngine.o Schema.o File.o y.tab.o lex.yy.o main.o DBFile.o -lfl
-	mv *.o $(BIN_DIR)
 	mv main $(BIN_DIR)
+	mv *.o $(BIN_DIR)
 	
 test.o: 
 	$(DD) -g -c $(SRC_DIR)/test.cc
@@ -74,6 +78,4 @@ lex.yy.o: $(SRC_DIR)/Lexer.l
 clean: 
 	rm -f $(BIN_DIR)/*.o
 	rm -f $(BIN_DIR)/*.out
-	#rm -f $(SRC_DIR)/y.tab.c
-	#rm -f $(SRC_DIR)/lex.yy.c
-	#rm -f $(SRC_DIR)/y.tab.h
+	rm -f $(BIN_DIR)/*.bin
