@@ -29,8 +29,8 @@ test: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o 
 	mv *.o $(BIN_DIR)
 	mv test $(BIN_DIR)
 	
-main: Record.o Comparison.o ComparisonEngine.o Schema.o File.o y.tab.o lex.yy.o main.o DBFile.o
-	$(CC) -o main Record.o Comparison.o ComparisonEngine.o Schema.o File.o y.tab.o lex.yy.o main.o DBFile.o -lfl
+main: Record.o Comparison.o ComparisonEngine.o Schema.o File.o BigQ.o DBFile.o Pipe.o y.tab.o lex.yy.o main.o 
+	$(CC) -o main Record.o Comparison.o ComparisonEngine.o Schema.o BigQ.o Pipe.o File.o DBFile.o y.tab.o lex.yy.o main.o  -lfl
 	mv main $(BIN_DIR)
 	mv *.o $(BIN_DIR)
 	
@@ -50,6 +50,12 @@ Comparison.o: $(SRC_DIR)/Comparison.cc
 	
 ComparisonEngine.o: $(SRC_DIR)/ComparisonEngine.cc
 	$(CC) -g -c $(SRC_DIR)/ComparisonEngine.cc
+	
+Pipe.o: $(SRC_DIR)/Pipe.cc
+	$(CC) -g -c $(SRC_DIR)/Pipe.cc
+	
+BigQ.o: $(SRC_DIR)/BigQ.cc
+	$(CC) -g -c $(SRC_DIR)/BigQ.cc
 	
 DBFile.o: $(SRC_DIR)/DBFile.cc
 	$(CC) -g -c $(SRC_DIR)/DBFile.cc

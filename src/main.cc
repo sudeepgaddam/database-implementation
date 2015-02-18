@@ -10,12 +10,12 @@ extern "C" {
 
 
 extern struct AndList *final;
-
+/*
 int main(){
 	//load page full of records and write to disk
-	Schema mSchema("/cise/homes/sandeep/Desktop/db-implementation/data/catalog", "lineitem");
+	Schema mSchema("data/catalog", "lineitem");
 	Page page;
-	FILE *tableFile = fopen("/cise/homes/sandeep/Desktop/db-implementation/tpc-h/lineitem.tbl","r");	Record mRec;
+	FILE *tableFile = fopen("/cise/homes/sgaddam/db-implementation/tpc-h/lineitem.tbl","r");	Record mRec;
 	if(!tableFile) return 0;
 	cout << "fopen success" << endl;
 	while(true){
@@ -26,11 +26,11 @@ int main(){
 	}
 	off_t offset = 1;
 	File mFile;
-	mFile.Open(0, "/cise/homes/sandeep/Desktop/foo.file");
+	mFile.Open(0, "foo.file");
 	mFile.AddPage(&page,offset);
 	mFile.Close();
 	//retrive page from disk and display records
-	mFile.Open(1, "/cise/homes/sandeep/Desktop/foo.file");
+	mFile.Open(1, "foo.file");
 	Page rPage;
 	Record rRec;
 	mFile.GetPage(&rPage, offset);
@@ -40,14 +40,12 @@ int main(){
 	}
 	cout << "END" << endl;
 }
-
-/*int main () {
+*/
+int main () {
 	
 	cout << "TESTING DBFile" << endl;
-	DBFile dbfile;// = new DBFile();
 	fType filetype = heap;
 	void *startup;
-	dbfile.Create("/home/sandeep/Desktop/foo",heap, startup);
 	cout << "END TESTING" << endl;
 	
 
@@ -59,7 +57,7 @@ int main(){
 	}
 
 	// suck up the schema from the file
-	Schema lineitem ("catalog", "lineitem");
+	Schema lineitem ("data/catalog", "lineitem");
 
 	// grow the CNF expression from the parse tree 
 	CNF myComparison;
@@ -68,9 +66,14 @@ int main(){
 	
 	// print out the comparison to the screen
 	myComparison.Print ();
+	OrderMaker dummy, sortorder;
+	myComparison.GetSortOrders (sortorder, dummy);
+ 	sortorder.Print();
+ 	dummy.Print();
 
 	// now open up the text file and start procesing it
-        FILE *tableFile = fopen ("/home/sandeep/Desktop/tpc-h/lineitem.tbl", "r");
+        /*
+	FILE *tableFile = fopen ("tpc-h/lineitem.tbl", "r");
 
         Record temp;
         Schema mySchema ("catalog", "lineitem");
@@ -83,6 +86,7 @@ int main(){
 	// the CNF expression that was typed in
 	int counter = 0;
 	ComparisonEngine comp;
+ 	
         while (temp.SuckNextRecord (&mySchema, tableFile) == 1) {
 		counter++;
 		if (counter % 10000 == 0) {
@@ -92,8 +96,8 @@ int main(){
 		if (comp.Compare (&temp, &literal, &myComparison))
                 	temp.Print (&mySchema);
 
-        }
+        } */
 
-}*/
+}
 
 
