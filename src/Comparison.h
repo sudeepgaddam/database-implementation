@@ -98,6 +98,8 @@ public:
         void GrowFromParseTree (struct AndList *parseTree, Schema *mySchema, 
 		Record &literal);
 
+	int getNumAnds();
+
 };
 
 #endif

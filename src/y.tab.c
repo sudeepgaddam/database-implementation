@@ -62,7 +62,7 @@
 
 
 /* Copy the first part of user declarations.  */
-#line 2 "/cise/homes/sgaddam/db-implementation/src/Parser.y" /* yacc.c:339  */
+#line 2 "/cise/homes/sandeep/Desktop/db-implementation/src/Parser.y" /* yacc.c:339  */
 
 
 	#include "ParseTree.h" 
@@ -135,7 +135,7 @@ extern int yydebug;
 typedef union YYSTYPE YYSTYPE;
 union YYSTYPE
 {
-#line 20 "/cise/homes/sgaddam/db-implementation/src/Parser.y" /* yacc.c:355  */
+#line 20 "/cise/homes/sandeep/Desktop/db-implementation/src/Parser.y" /* yacc.c:355  */
 
  	struct Operand *myOperand;
 	struct ComparisonOp *myComparison; 
@@ -407,7 +407,7 @@ union yyalloc
 /* YYNNTS -- Number of nonterminals.  */
 #define YYNNTS  6
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  13
+#define YYNRULES  14
 /* YYNSTATES -- Number of states.  */
 #define YYNSTATES  21
 
@@ -456,8 +456,8 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    55,    55,    70,    80,    88,    97,   106,   113,   120,
-     128,   136,   144,   152
+       0,    55,    55,    70,    80,    88,    97,   105,   113,   120,
+     127,   135,   143,   151,   159
 };
 #endif
 
@@ -506,8 +506,8 @@ static const yytype_int8 yypact[] =
      means the default is an error.  */
 static const yytype_uint8 yydefact[] =
 {
-       0,     0,     0,    13,    10,    11,    12,     0,     5,     0,
-       1,     3,     0,     7,     8,     9,     0,     0,     4,     6,
+       0,     0,     0,    14,    11,    12,    13,     0,     5,     7,
+       1,     3,     0,     8,     9,    10,     0,     0,     4,     6,
        2
 };
 
@@ -550,15 +550,15 @@ static const yytype_uint8 yystos[] =
   /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
 static const yytype_uint8 yyr1[] =
 {
-       0,    14,    15,    15,    16,    16,    17,    18,    18,    18,
-      19,    19,    19,    19
+       0,    14,    15,    15,    16,    16,    17,    17,    18,    18,
+      18,    19,    19,    19,    19
 };
 
   /* YYR2[YYN] -- Number of symbols on the right hand side of rule YYN.  */
 static const yytype_uint8 yyr2[] =
 {
        0,     2,     5,     3,     3,     1,     3,     1,     1,     1,
-       1,     1,     1,     1
+       1,     1,     1,     1,     1
 };
 
 
@@ -1235,7 +1235,7 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 56 "/cise/homes/sgaddam/db-implementation/src/Parser.y" /* yacc.c:1646  */
+#line 56 "/cise/homes/sandeep/Desktop/db-implementation/src/Parser.y" /* yacc.c:1646  */
     {
 	// here we need to pre-pend the OrList to the AndList
 	// first we allocate space for this node
@@ -1253,7 +1253,7 @@ yyreduce:
     break;
 
   case 3:
-#line 71 "/cise/homes/sgaddam/db-implementation/src/Parser.y" /* yacc.c:1646  */
+#line 71 "/cise/homes/sandeep/Desktop/db-implementation/src/Parser.y" /* yacc.c:1646  */
     {
 	// just return the OrList!
 	(yyval.myAndList) = (struct AndList *) malloc (sizeof (struct AndList));
@@ -1265,7 +1265,7 @@ yyreduce:
     break;
 
   case 4:
-#line 81 "/cise/homes/sgaddam/db-implementation/src/Parser.y" /* yacc.c:1646  */
+#line 81 "/cise/homes/sandeep/Desktop/db-implementation/src/Parser.y" /* yacc.c:1646  */
     { 
 	// here we have to hang the condition off the left of the OrList
 	(yyval.myOrList) = (struct OrList *) malloc (sizeof (struct OrList));	
@@ -1276,7 +1276,7 @@ yyreduce:
     break;
 
   case 5:
-#line 89 "/cise/homes/sgaddam/db-implementation/src/Parser.y" /* yacc.c:1646  */
+#line 89 "/cise/homes/sandeep/Desktop/db-implementation/src/Parser.y" /* yacc.c:1646  */
     {
 	// nothing to hang off of the right
 	(yyval.myOrList) = (struct OrList *) malloc (sizeof (struct OrList));
@@ -1287,7 +1287,7 @@ yyreduce:
     break;
 
   case 6:
-#line 98 "/cise/homes/sgaddam/db-implementation/src/Parser.y" /* yacc.c:1646  */
+#line 98 "/cise/homes/sandeep/Desktop/db-implementation/src/Parser.y" /* yacc.c:1646  */
     {
 	// in this case we have a simple literal/variable comparison
 	(yyval.myComparison) = (yyvsp[-1].myComparison);
@@ -1298,81 +1298,92 @@ yyreduce:
     break;
 
   case 7:
-#line 107 "/cise/homes/sgaddam/db-implementation/src/Parser.y" /* yacc.c:1646  */
+#line 106 "/cise/homes/sandeep/Desktop/db-implementation/src/Parser.y" /* yacc.c:1646  */
+    {
+	(yyval.myComparison) = (struct ComparisonOp *) malloc (sizeof (struct ComparisonOp));
+	(yyval.myComparison)->code = EQUALS;
+	(yyval.myComparison)->left = (yyvsp[0].myOperand);
+	(yyval.myComparison)->right = (yyvsp[0].myOperand);
+}
+#line 1309 "y.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 8:
+#line 114 "/cise/homes/sandeep/Desktop/db-implementation/src/Parser.y" /* yacc.c:1646  */
     {
 	// construct and send up the comparison
 	(yyval.myComparison) = (struct ComparisonOp *) malloc (sizeof (struct ComparisonOp));
 	(yyval.myComparison)->code = LESS_THAN;
 }
-#line 1308 "y.tab.c" /* yacc.c:1646  */
+#line 1319 "y.tab.c" /* yacc.c:1646  */
     break;
 
-  case 8:
-#line 114 "/cise/homes/sgaddam/db-implementation/src/Parser.y" /* yacc.c:1646  */
+  case 9:
+#line 121 "/cise/homes/sandeep/Desktop/db-implementation/src/Parser.y" /* yacc.c:1646  */
     {
 	// construct and send up the comparison
 	(yyval.myComparison) = (struct ComparisonOp *) malloc (sizeof (struct ComparisonOp));
 	(yyval.myComparison)->code = GREATER_THAN;
 }
-#line 1318 "y.tab.c" /* yacc.c:1646  */
+#line 1329 "y.tab.c" /* yacc.c:1646  */
     break;
 
-  case 9:
-#line 121 "/cise/homes/sgaddam/db-implementation/src/Parser.y" /* yacc.c:1646  */
+  case 10:
+#line 128 "/cise/homes/sandeep/Desktop/db-implementation/src/Parser.y" /* yacc.c:1646  */
     {
 	// construct and send up the comparison
 	(yyval.myComparison) = (struct ComparisonOp *) malloc (sizeof (struct ComparisonOp));
 	(yyval.myComparison)->code = EQUALS;
 }
-#line 1328 "y.tab.c" /* yacc.c:1646  */
+#line 1339 "y.tab.c" /* yacc.c:1646  */
     break;
 
-  case 10:
-#line 129 "/cise/homes/sgaddam/db-implementation/src/Parser.y" /* yacc.c:1646  */
+  case 11:
+#line 136 "/cise/homes/sandeep/Desktop/db-implementation/src/Parser.y" /* yacc.c:1646  */
     {
 	// construct and send up the operand containing the string
 	(yyval.myOperand) = (struct Operand *) malloc (sizeof (struct Operand));
 	(yyval.myOperand)->code = STRING;
 	(yyval.myOperand)->value = (yyvsp[0].actualChars);
 }
-#line 1339 "y.tab.c" /* yacc.c:1646  */
+#line 1350 "y.tab.c" /* yacc.c:1646  */
     break;
 
-  case 11:
-#line 137 "/cise/homes/sgaddam/db-implementation/src/Parser.y" /* yacc.c:1646  */
+  case 12:
+#line 144 "/cise/homes/sandeep/Desktop/db-implementation/src/Parser.y" /* yacc.c:1646  */
     {
 	// construct and send up the operand containing the FP number
 	(yyval.myOperand) = (struct Operand *) malloc (sizeof (struct Operand));
 	(yyval.myOperand)->code = DOUBLE;
 	(yyval.myOperand)->value = (yyvsp[0].actualChars);
 }
-#line 1350 "y.tab.c" /* yacc.c:1646  */
+#line 1361 "y.tab.c" /* yacc.c:1646  */
     break;
 
-  case 12:
-#line 145 "/cise/homes/sgaddam/db-implementation/src/Parser.y" /* yacc.c:1646  */
+  case 13:
+#line 152 "/cise/homes/sandeep/Desktop/db-implementation/src/Parser.y" /* yacc.c:1646  */
     {
 	// construct and send up the operand containing the integer
 	(yyval.myOperand) = (struct Operand *) malloc (sizeof (struct Operand));
 	(yyval.myOperand)->code = INT;
 	(yyval.myOperand)->value = (yyvsp[0].actualChars);
 }
-#line 1361 "y.tab.c" /* yacc.c:1646  */
+#line 1372 "y.tab.c" /* yacc.c:1646  */
     break;
 
-  case 13:
-#line 153 "/cise/homes/sgaddam/db-implementation/src/Parser.y" /* yacc.c:1646  */
+  case 14:
+#line 160 "/cise/homes/sandeep/Desktop/db-implementation/src/Parser.y" /* yacc.c:1646  */
     {
 	// construct and send up the operand containing the name 
 	(yyval.myOperand) = (struct Operand *) malloc (sizeof (struct Operand));
 	(yyval.myOperand)->code = NAME;
 	(yyval.myOperand)->value = (yyvsp[0].actualChars);
 }
-#line 1372 "y.tab.c" /* yacc.c:1646  */
+#line 1383 "y.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 1376 "y.tab.c" /* yacc.c:1646  */
+#line 1387 "y.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1600,6 +1611,6 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 161 "/cise/homes/sgaddam/db-implementation/src/Parser.y" /* yacc.c:1906  */
+#line 168 "/cise/homes/sandeep/Desktop/db-implementation/src/Parser.y" /* yacc.c:1906  */
 
 

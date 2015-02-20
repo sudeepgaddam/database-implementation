@@ -11,10 +11,10 @@ Record :: Record () {
 }
 
 Record :: ~Record () {
-	if (bits != NULL) {
+	/*if (bits != NULL) {
 		delete [] bits;
 	}
-	bits = NULL;
+	bits = NULL;*/
 
 }
 
@@ -360,6 +360,10 @@ void Record :: Print (Schema *mySchema) {
 	}
 
 	cout << "\n";
+}
+
+int Record :: GetSize(){
+	return ((int *) bits)[0];
 }
 
 

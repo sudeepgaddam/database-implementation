@@ -117,7 +117,9 @@ void OrderMaker :: Print () {
 	}
 }
 
-
+int CNF :: getNumAnds(){
+	return numAnds;
+}
 
 int CNF :: GetSortOrders (OrderMaker &left, OrderMaker &right) {
 
@@ -128,19 +130,15 @@ int CNF :: GetSortOrders (OrderMaker &left, OrderMaker &right) {
 	// loop through all of the disjunctions in the CNF and find those
 	// that are acceptable for use in a sort ordering
 	for (int i = 0; i < numAnds; i++) {
-		cout << "value " << i;
 		
 		// if we don't have a disjunction of length one, then it
 		// can't be acceptable for use with a sort ordering
 		if (orLens[i] != 1) {
-			cout << "Orlength not equals 1" << endl;
 			continue;
 		}
 
 		// made it this far, so first verify that it is an equality check
 		if (orList[i][0].op != Equals) {
-		cout << "operator is not equals" << endl;
-
 			continue;
 		}
 
