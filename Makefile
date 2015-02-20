@@ -24,7 +24,8 @@ sampletest.out: libgtest.a
 	$(DD) $(SRC_DIR)/sampletest.cc $(BIN_DIR)/libgtest.a -o $(BIN_DIR)/sampletest
 	mv *.o $(BIN_DIR)
 
-test: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ.o Pipe.o y.tab.o lex.yy.o test.o 
+
+test: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ.o Pipe.o y.tab.o lex.yy.o test.o
 	$(CC) -pthread -o test Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ.o Pipe.o y.tab.o lex.yy.o test.o -lfl
 	mv *.o $(BIN_DIR)
 	mv test $(BIN_DIR)

@@ -69,9 +69,7 @@ public:
 		CNF sort_pred;
 		sort_pred.GrowFromParseTree (final, schema (), literal); // constructs CNF predicate
 		OrderMaker dummy;
-		cout << "Num Ands in CNF: " << sort_pred.getNumAnds() << endl;
 		sort_pred.GetSortOrders (sortorder, dummy);
-		sortorder.Print();
 	}
 };
 
