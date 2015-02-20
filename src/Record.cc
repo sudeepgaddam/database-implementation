@@ -11,10 +11,10 @@ Record :: Record () {
 }
 
 Record :: ~Record () {
-	/*if (bits != NULL) {
+	if (bits != NULL) {
 		delete [] bits;
 	}
-	bits = NULL;*/
+	bits = NULL;
 
 }
 

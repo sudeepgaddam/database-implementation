@@ -9,9 +9,7 @@
 using namespace std;
 
 class BigQ {
-
 public:
-
 	BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen);
 	~BigQ ();
 };
