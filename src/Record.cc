@@ -11,6 +11,7 @@ Record :: Record () {
 }
 
 Record :: ~Record () {
+	//cout<< "Record Destructor Called" <<endl;
 	if (bits != NULL) {
 		delete [] bits;
 	}
@@ -159,7 +160,7 @@ void Record :: Consume (Record *fromMe) {
 }
 
 
-void Record :: Copy (Record *copyMe) {
+void Record :: Copy ( Record *copyMe) {
 	// this is a deep copy, so allocate the bits and move them over!
 	delete [] bits;
 	bits = new (std::nothrow) char[((int *) copyMe->bits)[0]];
@@ -171,6 +172,44 @@ void Record :: Copy (Record *copyMe) {
 
 	memcpy (bits, copyMe->bits, ((int *) copyMe->bits)[0]);
 
+}
+/*
+ * Newly Added. Not in Base code
+ */
+void Record :: Copy_const (const Record *copyMe) {
+	// this is a deep copy, so allocate the bits and move them over!
+	if (bits != NULL) {
+		//cout << "Deleting Bits" <<endl;
+		//Commenting delete works for now. Exact reason yet to be debugged
+		//delete [] bits;
+	}
+	bits = new (std::nothrow) char[((int *) copyMe->bits)[0]];
+	if (bits == NULL)
+	{
+		cout << "ERROR : Not enough memory. EXIT !!!\n";
+		exit(1);
+	}
+
+	memcpy (bits, copyMe->bits, ((int *) copyMe->bits)[0]);
+
+}
+
+/*
+ * Newly Added. Not in Base code. 
+ * To handle adding records into vector
+ */
+Record::Record(const Record &obj)
+{
+    //cout << "Copy constructor allocating ptr." << endl;
+    Copy_const(&obj);
+}
+
+Record& 
+Record :: operator=(const Record& other){
+    if (this != &other) {
+		this->Copy_const(&other);
+    }
+    return *this;
 }
 
 void Record :: Project (int *attsToKeep, int numAttsToKeep, int numAttsNow) {

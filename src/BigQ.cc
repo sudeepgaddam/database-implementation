@@ -8,11 +8,8 @@
 OrderMaker *localOrder;
 
 int Compare (const void *a, const void *b){
-	int i;
 	ComparisonEngine comp;
-	i = comp.Compare((Record *) a, (Record *)b, localOrder);
-	cout << "In Compare  : " << i << endl;
-	return i;
+	return comp.Compare((Record *) a, (Record *)b, localOrder);
 }
 
 
@@ -27,9 +24,8 @@ BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
 	cout << "Before creating DBfile" << endl;
 	char * fpath = "nation.in";
 	tempFile.Create(fpath, heap, NULL);
-	Record* vrec = new Record[1001];
-//	Record vrec[1001];
-//    vector<Record>* v = new std::vector<Record>	
+
+      vector<Record> vrec;	
 	int runcount = 0;
 	int size    = 0;
 	int recordcount = 0;
@@ -39,25 +35,23 @@ BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
 	cout << "Start reading from in pipe" << endl;
 	int i = 0;
 	//for(int i=0; i<1000; i++){
-while(in.Remove(&rec)){
-		in.Remove(&rec);
+	while(in.Remove(&rec)){
 		recordcount++;
 		int recsize = rec.GetSize();
 		size += recsize;
 		if(size <= PAGE_SIZE*runlen) {
-			vrec[i].Copy(&rec);
-			i++;
-			cout << "pushed into vector" << endl;
+			vrec.push_back(rec); 
+		
 		}
 		else{
 			runcount++;
 			int vsize = 1000;
-			qsort((void *) &vrec, vsize, sizeof(Record), Compare);
+			qsort((void *) &vrec[0], vsize, sizeof(Record), Compare);
 			
 			for(int i=0; i<vsize; i++){
 				tempFile.Add(vrec[i]);
 			}
-			//vrec.clear();
+			vrec.clear();
 		}
 		cout << "reading: recs - " << recordcount << endl;
 	}
@@ -66,14 +60,17 @@ while(in.Remove(&rec)){
 	cout << "finished reading: runs - " << runcount << endl;
 				
 	int vsize = recordcount;//vrec.size();
-	if(vsize >0) { runcount++;  cout << "start qsort" << endl; 
-			qsort((void *) vrec, recordcount, sizeof(Record), Compare);
-			 cout << "end qsort" << endl;
+	if(vsize >0) { 
+		runcount++;
+		cout << "start qsort" << endl; 
+		qsort((void *) &vrec[0], recordcount, sizeof(Record), Compare);
+	    cout << "end qsort" << endl;
 	}
 	for(int i=0; i<vsize; i++){
         	vrec[i].Print(schema);
+        	tempFile.Add(vrec[i]);
 	}
-	//vrec.clear();
+	vrec.clear();
 	tempFile.Close();
 
 	cout << "Success!" << endl;

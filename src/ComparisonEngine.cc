@@ -15,7 +15,7 @@ int ComparisonEngine :: Compare(Record *left, Record *right, OrderMaker *orderUs
 
 	char *left_bits = left->GetBits();
 	char *right_bits = right->GetBits();
-	cout <<"Printing addresses "<< (void *)left_bits <<"   "<< (void *)right_bits <<endl; 
+	//cout <<"Printing addresses "<< (void *)left_bits <<"   "<< (void *)right_bits <<endl; 
 	//orderUs->Print();
 	for (int i = 0; i < orderUs->numAtts; i++) {
 		val1 = left_bits + ((int *) left_bits)[orderUs->whichAtts[i] + 1];
