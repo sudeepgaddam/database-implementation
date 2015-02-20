@@ -19,7 +19,8 @@ BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
 	
 	// read data from in pipe sort them into runlen pages
 	Record rec;
-    	Schema *schema = new Schema ("data/catalog", "nation");
+	Record temp;
+    Schema *schema = new Schema ("data/catalog", "nation");
 	DBFile tempFile;
 	cout << "Before creating DBfile" << endl;
 	char * fpath = "nation.in";
@@ -69,6 +70,9 @@ BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
 	for(int i=0; i<vsize; i++){
         	vrec[i].Print(schema);
         	tempFile.Add(vrec[i]);
+	}
+	while (tempFile.GetNext (temp) == 1) {
+		temp.Print(schema);
 	}
 	vrec.clear();
 	tempFile.Close();
