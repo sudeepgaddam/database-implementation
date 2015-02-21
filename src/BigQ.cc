@@ -51,7 +51,6 @@ void phasetwo(int num_runs, int runlen, DBFile* dfile){
 	cout << "start insertion into pq" << endl;
 	for(int i=0; i<num_buffers; i++){
 
-		
 		// read one page into each buffer
 		Page m_page;
 		if(!dfile->GetPage(&m_page, whichPage)){
@@ -59,8 +58,8 @@ void phasetwo(int num_runs, int runlen, DBFile* dfile){
 			continue;
 		}
 		if(m_page.GetNumRecs() <=0) continue;
-		buffers.push_back(m_page); 
-		cout << "read- " << whichPage << " -Page" << endl;	
+		cout << "read- " << whichPage << " -Page" << endl;
+		buffers.push_back(m_page); 	
 		cout << "read- " << buffers[i].GetNumRecs() << " -Records" << endl;	
 		whichPage += runlen;
 		

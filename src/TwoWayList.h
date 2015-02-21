@@ -1,5 +1,8 @@
 #ifndef _TWO_WAY_LIST_H
 #define _TWO_WAY_LIST_H
+#include <iostream>
+
+using namespace std;
 
 template <class Type>
 class TwoWayList {
@@ -53,6 +56,15 @@ class TwoWayList {
 			
 			// constructor
 			Node () : data (0), next (0), previous (0) {}
+
+			// copy constructor
+			Node(Node &me){
+				cout << "while calling Node copy c'tor" << endl;
+				Type tType = *me.data;
+				this->data = *tType;
+				this->next = me.next;
+				this->previous = me.previous;
+			}
 
 			// deconstructor 
 			~Node () 

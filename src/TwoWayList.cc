@@ -12,7 +12,7 @@ using namespace std;
 // create an alias of the given TwoWayList
 template <class Type>
 TwoWayList <Type> :: TwoWayList (TwoWayList &me) {
-
+	cout << "while calling twolist copy constructor" << endl;
 	list = new (std::nothrow) Header;
 	if (list == NULL)
 	{
@@ -20,9 +20,24 @@ TwoWayList <Type> :: TwoWayList (TwoWayList &me) {
 		exit(1);
 	}
 
-	list->first = me.list->first;
+	/*list->first = me.list->first;
 	list->last = me.list->last;
 	list->current = me.list->current;
+	list->leftSize = me.list->leftSize;
+	list->rightSize = me.list->rightSize;*/
+
+	//implement deep copy
+	Node *ptr = me.list->first;
+	Node tempNode = *me.list->first; // call copy c'tor of Node TODO-check
+	list->first = &tempNode; 
+	ptr = ptr->next;
+	while(ptr->next){
+		Node tNode = *ptr; // call copy c'tor of Node TODO-check
+		list->current = &tNode; 
+		ptr = ptr->next;
+		
+	}
+	list->last = ptr;
 	list->leftSize = me.list->leftSize;
 	list->rightSize = me.list->rightSize;
 }
