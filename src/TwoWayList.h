@@ -60,8 +60,8 @@ class TwoWayList {
 			// copy constructor
 			Node(Node &me){
 				cout << "while calling Node copy c'tor" << endl;
-				Type tType = *me.data;
-				this->data = *tType;
+				Type *tType = me.data;
+				*this->data = *tType;
 				this->next = me.next;
 				this->previous = me.previous;
 			}

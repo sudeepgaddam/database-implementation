@@ -36,9 +36,9 @@ Page :: Page(const Page &obj) {
 		cout << "ERROR: cannot copy since source page is empty." << endl;
 	}
 	TwoWayList <Record> *tRecs = obj.myRecs;
-	//cout << "before calling page copy constructor" << endl;
+	cout << "before calling page copy constructor" << endl;
 	TwoWayList<Record> tmpRecs = *tRecs;
-	//cout << "after calling page copy constructor" << endl;
+	cout << "after calling page copy constructor" << endl;
 	myRecs = &tmpRecs;
 	this->numRecs = obj.numRecs;
 	this->curSizeInBytes = obj.curSizeInBytes;

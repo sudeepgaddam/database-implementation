@@ -28,11 +28,15 @@ TwoWayList <Type> :: TwoWayList (TwoWayList &me) {
 
 	//implement deep copy
 	Node *ptr = me.list->first;
-	Node tempNode = *me.list->first; // call copy c'tor of Node TODO-check
+	cout << "Before Node c'tor 1" << endl;
+	Node tempNode = *ptr; // call copy c'tor of Node TODO-check
+	cout << "After Node c'tor 1" << endl;
 	list->first = &tempNode; 
 	ptr = ptr->next;
 	while(ptr->next){
+		cout << "Before Node c'tor 2" << endl;
 		Node tNode = *ptr; // call copy c'tor of Node TODO-check
+			cout << "After Node c'tor 2" << endl;
 		list->current = &tNode; 
 		ptr = ptr->next;
 		
