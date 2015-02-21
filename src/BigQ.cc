@@ -16,14 +16,14 @@ int Compare (const void *a, const void *b){
 BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
 	
 	localOrder = &sortorder;
-	
+	int count = 0;
 	// read data from in pipe sort them into runlen pages
 	Record rec;
 	Record temp;
-    Schema *schema = new Schema ("data/catalog", "nation");
+    Schema *schema = new Schema ("data/catalog", "lineitem");
 	DBFile tempFile;
 	cout << "Before creating DBfile" << endl;
-	char * fpath = "nation.in";
+	char * fpath = "lineitem.in";
 	tempFile.Create(fpath, heap, NULL);
 
       vector<Record> vrec;	
@@ -37,24 +37,27 @@ BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
 	int i = 0;
 	//for(int i=0; i<1000; i++){
 	while(in.Remove(&rec)){
+		
 		recordcount++;
 		int recsize = rec.GetSize();
 		size += recsize;
 		if(size <= PAGE_SIZE*runlen) {
 			vrec.push_back(rec); 
-		
 		}
 		else{
 			runcount++;
-			int vsize = 1000;
-			qsort((void *) &vrec[0], vsize, sizeof(Record), Compare);
+			cout << "One Run Completed. Run count" << runcount<<endl;
+
+			qsort((void *) &vrec[0], recordcount-1, sizeof(Record), Compare);
 			
-			for(int i=0; i<vsize; i++){
+			for(int i=0; i<recordcount-1; i++){
 				tempFile.Add(vrec[i]);
 			}
 			vrec.clear();
+			size = recsize;
+			vrec.push_back(rec);
+			recordcount = 1;
 		}
-		cout << "reading: recs - " << recordcount << endl;
 	}
 	
 	cout << "finished reading: recs - " << recordcount << endl;
@@ -68,11 +71,13 @@ BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
 	    cout << "end qsort" << endl;
 	}
 	for(int i=0; i<vsize; i++){
-        	vrec[i].Print(schema);
         	tempFile.Add(vrec[i]);
 	}
 	while (tempFile.GetNext (temp) == 1) {
+		count++;
+		if (count%1000 == 0) {
 		temp.Print(schema);
+	}
 	}
 	vrec.clear();
 	tempFile.Close();
