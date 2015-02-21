@@ -78,7 +78,7 @@ public:
 	void Open (int length, char *fName);
 
 	// allows someone to explicitly get a specified page from the file
-	void GetPage (Page *putItHere, off_t whichPage);
+	int GetPage (Page *putItHere, off_t whichPage);
 
 	// allows someone to explicitly write a specified page to the file
 	// if the write is past the end of the file, all of the new pages that

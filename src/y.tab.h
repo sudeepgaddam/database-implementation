@@ -66,7 +66,7 @@ extern int yydebug;
 typedef union YYSTYPE YYSTYPE;
 union YYSTYPE
 {
-#line 20 "/cise/homes/sgaddam/db_latest/db-implementation/src/Parser.y" /* yacc.c:1909  */
+#line 20 "/cise/homes/sandeep/Desktop/db-implementation/src/Parser.y" /* yacc.c:1909  */
 
  	struct Operand *myOperand;
 	struct ComparisonOp *myComparison; 

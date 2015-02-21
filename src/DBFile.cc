@@ -166,3 +166,8 @@ int DBFile::GetNext (Record &fetchme, CNF &cnf, Record &literal) {
 	return ret;
 }
 
+int DBFile:: GetPage (Page *putItHere, off_t whichPage) {
+	return heapfile->GetPage(putItHere, whichPage);
+}
+
+

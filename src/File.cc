@@ -30,7 +30,15 @@ Page :: ~Page () {
 }
 
 Page :: Page(const Page &obj) {
-
+	//delete myRecs;
+	myRecs = new (std::nothrow) TwoWayList<Record>;
+	if(obj.myRecs == NULL){
+		cout << "ERROR: cannot copy since source page is empty." << endl;
+	}
+	TwoWayList <Record> *tRecs = obj.myRecs;
+	this->myRecs= tRecs;
+	this->numRecs = obj.numRecs;
+	this->curSizeInBytes = obj.curSizeInBytes;
 
 }
 
@@ -185,7 +193,7 @@ File :: ~File () {
 }
 
 
-void File :: GetPage (Page *putItHere, off_t whichPage) {
+int File :: GetPage (Page *putItHere, off_t whichPage) {
 
 	// this is because the first page has no data
 	whichPage++;
@@ -193,7 +201,7 @@ void File :: GetPage (Page *putItHere, off_t whichPage) {
 	if (whichPage >= curLength) {
 		cerr << "whichPage " << whichPage << " length " << curLength << endl;
 		cerr << "BAD: you tried to read past the end of the file\n";
-		exit (1);
+		return 0; //exit (1);
 	}
 
 	// read in the specified page
@@ -201,13 +209,14 @@ void File :: GetPage (Page *putItHere, off_t whichPage) {
 	if (bits == NULL)
 	{
 		cout << "ERROR : Not enough memory. EXIT !!!\n";
-		exit(1);
+		return 0; //exit(1);
 	}
 
 	lseek (myFilDes, PAGE_SIZE * whichPage, SEEK_SET);
 	read (myFilDes, bits, PAGE_SIZE);
 	putItHere->FromBinary (bits);
 	delete [] bits;
+	return 1;
 	
 }
 
