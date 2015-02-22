@@ -90,6 +90,7 @@ int Page :: GetFirst (Record *firstOne) {
 // fetch current record and store the record datastructure in bits
 int Page :: GetCurrent (Record *currentOne) {
 	
+	//cout << "rightLength: " << myRecs->RightLength() << endl;
     	//Get current Record
 	if (!myRecs->RightLength ()) {
             return 0;

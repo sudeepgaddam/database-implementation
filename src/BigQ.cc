@@ -68,7 +68,8 @@ void phasetwo(int num_runs, int runlen, DBFile* dfile){
 	
 	char * fpath = "lineitem.in";
 	dfile->Open(fpath);
-	off_t whichPage = 1;
+	dfile->MoveFirst();
+	off_t whichPage = 0;
 
 	cout << "start insertion into pq" << endl;
 	for(int i=0; i<num_buffers; i++){
@@ -227,10 +228,11 @@ BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
         	tempFile.Add(vrec[i]);
 	}
 	while (tempFile.GetNext (temp) == 1) {
-		count++;
-		if (count%1000 == 0) {
-		//temp.Print(schema);
+		
+		if (count < 1000) {
+		temp.Print(schema);
 		}
+		count++;
 	}
 
 	vrec.clear();
