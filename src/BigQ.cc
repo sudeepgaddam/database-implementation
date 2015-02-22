@@ -20,12 +20,26 @@ int Compare (const void *a, const void *b){
 struct RecordInfo{
 	Record rec;
 	int bufferId;
-	
 
-	bool operator < (const RecordInfo& rInf) const{
+	RecordInfo(){
+	}
+	
+	RecordInfo(const RecordInfo& obj){
+		cout << "start RecordInfo c'tor" << endl;
+		this->bufferId = obj.bufferId;
+		//this->rec = new Record(obj.rec);
+		Record tempRec (obj.rec);
+		this->rec = tempRec;
+		//this->rec.Copy(&obj.rec); 
+		cout << "end RecordInfo c'tor" << endl;
+	}
+
+	bool operator < (const RecordInfo& rInfo) const{
+
+		cout << "start compare operator" << endl;
 		const Record *reca = &rec;
-		const Record *recb = &(rInf.rec);
-		
+		const Record *recb = &(rInfo.rec);
+		cout << "calling ComparisonEngine.Compare()" << endl;
 		return Compare((void *) reca,(void *) recb) > 0;
 	}
 };
@@ -72,14 +86,15 @@ void phasetwo(int num_runs, int runlen, DBFile* dfile){
 		buffers[i].MoveToStart (); //since getpage advances current to end
 		cout << "Buffer[" << i << "] movedToStart" << endl;
 		if(!buffers[i].GetCurrent(&recInfo.rec)) {
-			cout << "read -current record" << endl;			
+			cout << "unable to read current record" << endl;			
 			continue;
 		}
 		cout << "printing record" << endl;
 		recInfo.rec.Print(schema);		 
 		recInfo.bufferId = i;
+		cout << "before pushing into pq" << endl;
 		pq.push(recInfo);
-		cout << "pushed recInfo into pq" << endl;
+		cout << "after  pushing into pq" << endl;
 		
 		// initialize pointers         	
 		pointers[i] =0;                 

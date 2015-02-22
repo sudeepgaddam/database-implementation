@@ -208,13 +208,13 @@ Record::Record(const Record &obj)
     //Copy((Record *)((void *) &obj));	
 }
 
-Record& 
+/*Record& 
 Record :: operator=(const Record& other){
     if (this != &other) {
 		this->Copy_const(&other);
     }
     return *this;
-}
+}*/
 
 void Record :: Project (int *attsToKeep, int numAttsToKeep, int numAttsNow) {
 	// first, figure out the size of the new record

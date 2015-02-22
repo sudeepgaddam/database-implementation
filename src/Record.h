@@ -41,7 +41,7 @@ public:
 	 */ 
 	Record( const Record &obj);
 	
-	Record&  operator=(const Record& other);
+	//Record&  operator=(const Record& other);
 
 	// suck the contents of the record fromMe into this; note that after
 	// this call, fromMe will no longer have anything inside of it

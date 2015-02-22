@@ -38,10 +38,9 @@ Page :: Page(const Page &obj) {
 		exit(1);
 	}
 	
-	cout << "before TwoWayList deep copy" << endl;
-	cout << obj.myRecs << endl;
+	//cout << "before TwoWayList deep copy" << endl;
 	myRecs->Copy(*obj.myRecs);
-	cout << "after  TwoWayList deep copy" << endl;
+	//cout << "after  TwoWayList deep copy" << endl;
 	this->numRecs = obj.numRecs;
 	this->curSizeInBytes = obj.curSizeInBytes;
 		
