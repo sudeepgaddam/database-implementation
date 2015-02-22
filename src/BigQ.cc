@@ -15,10 +15,8 @@ int Compare (const void *a, const void *b){
 }
 
 
-
-
 struct RecordInfo{
-	Record rec;
+	Record* rec;
 	int bufferId;
 
 	RecordInfo(){
@@ -27,9 +25,8 @@ struct RecordInfo{
 	RecordInfo(const RecordInfo& obj){
 		cout << "start RecordInfo c'tor" << endl;
 		this->bufferId = obj.bufferId;
-		//this->rec = new Record(obj.rec);
-		Record tempRec (obj.rec);
-		this->rec = tempRec;
+		this->rec = new Record();
+		*this->rec = *(obj.rec);
 		//this->rec.Copy(&obj.rec); 
 		cout << "end RecordInfo c'tor" << endl;
 	}
@@ -37,13 +34,25 @@ struct RecordInfo{
 	bool operator < (const RecordInfo& rInfo) const{
 
 		cout << "start compare operator" << endl;
-		const Record *reca = &rec;
-		const Record *recb = &(rInfo.rec);
+		const Record *reca = rec;
+		const Record *recb = (rInfo.rec);
 		cout << "calling ComparisonEngine.Compare()" << endl;
 		return Compare((void *) reca,(void *) recb) > 0;
 	}
 };
 
+
+class CompareRecordInfo{
+	public:
+		bool operator()(RecordInfo& rInfoa, RecordInfo& rInfob){
+			cout << "Inside CompareRecordInfo class" << endl;
+			Record *reca = (rInfoa.rec);
+			Record *recb = (rInfob.rec);
+			int ret = compEng.Compare(reca, recb, localOrder);
+			if(ret <0) return true;
+			else return false;
+		}	
+};
 
 void phasetwo(int num_runs, int runlen, DBFile* dfile){
 	
@@ -55,8 +64,7 @@ void phasetwo(int num_runs, int runlen, DBFile* dfile){
 	vector<Page> buffers;
 	int pointers[num_buffers];
 
-	priority_queue<RecordInfo, vector<RecordInfo> > pq;  //greater than comparison -> min pq
-
+	priority_queue<RecordInfo> pq;  //greater than comparison -> min pq
 	
 	char * fpath = "lineitem.in";
 	dfile->Open(fpath);
@@ -83,29 +91,32 @@ void phasetwo(int num_runs, int runlen, DBFile* dfile){
 		
 		// insert current recInfos into pq --TODO boundary conditions			  
 		RecordInfo recInfo;
+		recInfo.rec = new Record();
 		buffers[i].MoveToStart (); //since getpage advances current to end
 		cout << "Buffer[" << i << "] movedToStart" << endl;
-		if(!buffers[i].GetCurrent(&recInfo.rec)) {
+		if(!buffers[i].GetCurrent(recInfo.rec)) {
 			cout << "unable to read current record" << endl;			
 			continue;
 		}
 		cout << "printing record" << endl;
-		recInfo.rec.Print(schema);		 
+		recInfo.rec->Print(schema);		 
 		recInfo.bufferId = i;
 		cout << "before pushing into pq" << endl;
+		cout << recInfo.rec << endl;
 		pq.push(recInfo);
 		cout << "after  pushing into pq" << endl;
 		
 		// initialize pointers         	
-		pointers[i] =0;                 
+		pointers[i] =0;
+		                
 	}
 
 	cout << "insertion into pq sucess" << endl;
 	while(!pq.empty()){
 		RecordInfo currentRecInfo = pq.top();
 		pq.pop();
-		Record current  = currentRecInfo.rec;
-		current.Print(schema);
+		Record* current  = currentRecInfo.rec;
+		current->Print(schema);
 	}
 
 	

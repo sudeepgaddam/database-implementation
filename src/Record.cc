@@ -185,7 +185,7 @@ void Record :: Copy_const (const Record *copyMe) {
 		//delete [] bits;
 	}*/
 
-
+	//cout << "copyme address: " << copyMe << endl;
 	bits = new (std::nothrow) char[((int *) copyMe->bits)[0]];
 	if (bits == NULL)
 	{
