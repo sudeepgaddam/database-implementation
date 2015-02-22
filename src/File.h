@@ -53,6 +53,8 @@ public:
 	// empty it out
 	void EmptyItOut ();
 
+	void Print ();
+
 };
 
 

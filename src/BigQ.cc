@@ -58,7 +58,10 @@ void phasetwo(int num_runs, int runlen, DBFile* dfile){
 			continue;
 		}
 		if(m_page.GetNumRecs() <=0) continue;
+
 		cout << "read- " << whichPage << " -Page" << endl;
+		cout << "numrecs: " << m_page.GetNumRecs() << endl;
+		
 		buffers.push_back(m_page); 	
 		cout << "read- " << buffers[i].GetNumRecs() << " -Records" << endl;	
 		whichPage += runlen;
@@ -67,6 +70,7 @@ void phasetwo(int num_runs, int runlen, DBFile* dfile){
 		// insert current recInfos into pq --TODO boundary conditions			  
 		RecordInfo recInfo;
 		buffers[i].MoveToStart (); //since getpage advances current to end
+		cout << "Buffer[" << i << "] movedToStart" << endl;
 		if(!buffers[i].GetCurrent(&recInfo.rec)) {
 			cout << "read -current record" << endl;			
 			continue;
@@ -141,20 +145,19 @@ BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
 	
 	localOrder = &sortorder;
 	int count = 0;
+
 	// read data from in pipe sort them into runlen pages
 	Record rec;
 	Record temp;
     	Schema *schema = new Schema ("data/catalog", "lineitem");
 	DBFile tempFile;
-	cout << "Before creating DBfile" << endl;
 	char * fpath = "lineitem.in";
 	tempFile.Create(fpath, heap, NULL);
 
       	vector<Record> vrec;	
 	int runcount = 0;
 	int size    = 0;
-	int recordcount = 0;
-	cout << "Before opening DBfile" << endl;	
+	int recordcount = 0;	
 	tempFile.Open(fpath);
 
 	cout << "Start reading from in pipe" << endl;
@@ -171,7 +174,7 @@ BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
 		else{
 			runcount++;
 			cout << "One Run Completed. Run count" << runcount<<endl;
-
+			
 			qsort((void *) &vrec[0], recordcount-1, sizeof(Record), Compare);
 			
 			for(int i=0; i<recordcount-1; i++){
@@ -184,15 +187,15 @@ BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
 		}
 	}
 	
-	cout << "finished reading: recs - " << recordcount << endl;
-	cout << "finished reading: runs - " << runcount << endl;
+	//cout << "finished reading: recs - " << recordcount << endl;
+	//cout << "finished reading: runs - " << runcount << endl;
 				
 	int vsize = recordcount;//vrec.size();
 	if(vsize >0) { 
 		runcount++;
-		cout << "start qsort" << endl; 
+		//cout << "start qsort" << endl; 
 		qsort((void *) &vrec[0], recordcount, sizeof(Record), Compare);
-	    cout << "end qsort" << endl;
+	    	//cout << "end qsort" << endl;
 	}
 	for(int i=0; i<vsize; i++){
         	tempFile.Add(vrec[i]);
@@ -200,13 +203,14 @@ BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
 	while (tempFile.GetNext (temp) == 1) {
 		count++;
 		if (count%1000 == 0) {
-		temp.Print(schema);
+		//temp.Print(schema);
+		}
 	}
-	}
+
 	vrec.clear();
 	tempFile.Close();
 
-	cout << "Success!" << endl;
+	cout << "Success!! PHASE ONE ended with runs=qsortcount: " << runcount << endl;
 
 	phasetwo(runcount, runlen, &tempFile);
 	

@@ -74,6 +74,8 @@ public:
 	// that the schema also be given so that the record can be interpreted
 	void Print (Schema *mySchema);
 
+	void Print();
+
 	// returns the size of record in bytes
 	int GetSize();
 };

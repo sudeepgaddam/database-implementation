@@ -26,6 +26,7 @@ Page :: Page () {
 }
 
 Page :: ~Page () {
+	cout << "PAGE DESTRUCTOR" << endl;
 	delete myRecs;
 }
 
@@ -34,16 +35,23 @@ Page :: Page(const Page &obj) {
 	myRecs = new (std::nothrow) TwoWayList<Record>;
 	if(obj.myRecs == NULL){
 		cout << "ERROR: cannot copy since source page is empty." << endl;
+		exit(1);
 	}
-	TwoWayList <Record> *tRecs = obj.myRecs;
-	cout << "before calling page copy constructor" << endl;
-	TwoWayList<Record> tmpRecs = *tRecs;
-	cout << "after calling page copy constructor" << endl;
-	myRecs = &tmpRecs;
+	
+	cout << "before TwoWayList deep copy" << endl;
+	cout << obj.myRecs << endl;
+	myRecs->Copy(*obj.myRecs);
+	cout << "after  TwoWayList deep copy" << endl;
 	this->numRecs = obj.numRecs;
 	this->curSizeInBytes = obj.curSizeInBytes;
-
+		
 }
+
+void Page :: Print(){
+	
+	myRecs->Print();
+
+} 
 
 void Page :: EmptyItOut () {
 

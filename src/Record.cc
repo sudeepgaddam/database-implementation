@@ -161,6 +161,7 @@ void Record :: Consume (Record *fromMe) {
 
 
 void Record :: Copy ( Record *copyMe) {
+	//cout << "calling Record copy c'tor" << endl;
 	// this is a deep copy, so allocate the bits and move them over!
 	delete [] bits;
 	bits = new (std::nothrow) char[((int *) copyMe->bits)[0]];
@@ -178,11 +179,13 @@ void Record :: Copy ( Record *copyMe) {
  */
 void Record :: Copy_const (const Record *copyMe) {
 	// this is a deep copy, so allocate the bits and move them over!
-	if (bits != NULL) {
+	/*if (bits != NULL) {
 		//cout << "Deleting Bits" <<endl;
 		//Commenting delete works for now. Exact reason yet to be debugged
 		//delete [] bits;
-	}
+	}*/
+
+
 	bits = new (std::nothrow) char[((int *) copyMe->bits)[0]];
 	if (bits == NULL)
 	{
@@ -200,8 +203,9 @@ void Record :: Copy_const (const Record *copyMe) {
  */
 Record::Record(const Record &obj)
 {
-    //cout << "Copy constructor allocating ptr." << endl;
     Copy_const(&obj);
+    //Record();
+    //Copy((Record *)((void *) &obj));	
 }
 
 Record& 
@@ -405,5 +409,9 @@ int Record :: GetSize(){
 	return ((int *) bits)[0];
 }
 
+void Record :: Print(){
+	Schema *schema = new Schema ("data/catalog", "lineitem");
+	Print(schema);
+}
 
 

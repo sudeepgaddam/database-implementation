@@ -2,7 +2,6 @@
 #define _TWO_WAY_LIST_C
 
 #include "TwoWayList.h"
-
 #include <iostream>
 #include <stdlib.h>
 
@@ -20,20 +19,20 @@ TwoWayList <Type> :: TwoWayList (TwoWayList &me) {
 		exit(1);
 	}
 
-	/*list->first = me.list->first;
+	list->first = me.list->first;
 	list->last = me.list->last;
 	list->current = me.list->current;
 	list->leftSize = me.list->leftSize;
-	list->rightSize = me.list->rightSize;*/
+	list->rightSize = me.list->rightSize;
 
 	//implement deep copy
-	Node *ptr = me.list->first;
+	/*Node *ptr = me.list->first;
 	cout << "Before Node c'tor 1" << endl;
 	Node tempNode = *ptr; // call copy c'tor of Node TODO-check
 	cout << "After Node c'tor 1" << endl;
 	list->first = &tempNode; 
 	ptr = ptr->next;
-	while(ptr->next){
+	while(ptr->next!=NULL){
 		cout << "Before Node c'tor 2" << endl;
 		Node tNode = *ptr; // call copy c'tor of Node TODO-check
 			cout << "After Node c'tor 2" << endl;
@@ -43,7 +42,59 @@ TwoWayList <Type> :: TwoWayList (TwoWayList &me) {
 	}
 	list->last = ptr;
 	list->leftSize = me.list->leftSize;
-	list->rightSize = me.list->rightSize;
+	list->rightSize = me.list->rightSize;*/
+}
+
+
+template <class Type> void
+TwoWayList <Type> :: Print(){
+	int size = list->leftSize + list->rightSize;
+	cout << "size: " << size << endl;
+	cout << "lsize: " << list->leftSize << endl;
+	cout << "rsize: " << list->rightSize << endl;
+	Node *curr = list->current;
+	cout << "address: " << curr << endl;
+	for(int i=0; i<size; i++){
+		cout << "data address: " << curr->data << endl;
+		curr->data->Print();
+		curr = curr->next;
+		cout << "address: " << curr << endl;
+	}
+}
+
+//TESTED -- need to run GOOGLETEST
+template <class Type> void
+TwoWayList <Type> :: Copy(TwoWayList &copyme){
+
+	//call this after TwoWayList c'tor
+	
+	copyme.MoveToStart();
+	int leftsize = copyme.list->leftSize;
+	int rightsize = copyme.list->rightSize;
+	int size = leftsize + rightsize;
+	
+	//cout << "start copying TwoWayList" << endl;
+	for(int num =0; num <size; num++){
+		Node* curr = copyme.list->current;
+		Record* rec = (Record *)copyme.Current(0);
+		Node tempNode;
+		tempNode.data = rec;
+		tempNode.next = curr->next;
+		tempNode.previous = curr->previous;
+		Node fnode(tempNode);
+		copyme.Advance();
+		this->Insert(fnode.data);
+	}
+	//cout << "end  copying TwoWayList" << endl;
+	
+	copyme.MoveToStart();
+	//cout << "start moving current" << endl;
+	for(int lcount=0; lcount<leftsize; lcount++){
+		copyme.Advance();
+		this->Advance();
+	}
+	//cout << "stop moving current" << endl;
+
 }
 
 // basic constructor function
@@ -86,7 +137,7 @@ TwoWayList <Type> :: TwoWayList ()
 template <class Type>
 TwoWayList <Type> :: ~TwoWayList ()
 {
-
+	cout << "TWOWAYLIST DESTRUCTOR" << endl;
 	// remove everything
 	MoveToStart ();
 	while (RightLength ()>0) {

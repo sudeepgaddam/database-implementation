@@ -1,6 +1,8 @@
 #ifndef _TWO_WAY_LIST_H
 #define _TWO_WAY_LIST_H
 #include <iostream>
+#include <vector>
+#include <stdlib.h>
 
 using namespace std;
 
@@ -46,6 +48,10 @@ class TwoWayList {
 		void MoveToFinish (); 
 
 		TwoWayList (TwoWayList & List);
+
+		void Copy(TwoWayList &copyMe);
+
+		void Print();
 	private:
 
 		struct Node {
@@ -57,14 +63,11 @@ class TwoWayList {
 			// constructor
 			Node () : data (0), next (0), previous (0) {}
 
-			// copy constructor
-			Node(Node &me){
-				cout << "while calling Node copy c'tor" << endl;
-				Type *tType = me.data;
-				*this->data = *tType;
-				this->next = me.next;
-				this->previous = me.previous;
-			}
+			Node(const Node& copyNode){
+				this->data = new Type(*copyNode.data);
+				this->next = copyNode.next;
+				this->previous = copyNode.previous;
+			} 
 
 			// deconstructor 
 			~Node () 
