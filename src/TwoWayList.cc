@@ -76,18 +76,22 @@ TwoWayList <Type> :: Copy(TwoWayList &copyme){
 	//cout << "start copying TwoWayList" << endl;
 	for(int num =0; num <size; num++){
 		Node* curr = copyme.list->current;
-		Record* rec = (Record *)copyme.Current(0);
-		Node tempNode;
-		tempNode.data = rec;
-		tempNode.next = curr->next;
-		tempNode.previous = curr->previous;
-		Node fnode(tempNode);
-		copyme.Advance();
+		Record* rec = new Record();
+		*rec = *((Record *)copyme.Current(0));
+		//Record* rec = copyme.Current(0);
+		Node* tempNode = new Node();
+		tempNode->data = rec;
+		tempNode->next = curr->next;
+		tempNode->previous = curr->previous;
+		Node fnode(*tempNode);
 		this->Insert(fnode.data);
+		this->Advance();
+		copyme.Advance();
 	}
 	//cout << "end  copying TwoWayList" << endl;
 	
 	copyme.MoveToStart();
+	this->MoveToStart();
 	//cout << "start moving current" << endl;
 	for(int lcount=0; lcount<leftsize; lcount++){
 		copyme.Advance();

@@ -64,9 +64,16 @@ class TwoWayList {
 			Node () : data (0), next (0), previous (0) {}
 
 			Node(const Node& copyNode){
-				this->data = new Type(*copyNode.data);
+				Node* n = new Node();
+				//n->data = new Type(*copyNode.data);
+				n->data = new Type();
+				n->data->Copy_const(copyNode.data);
+				n->next = copyNode.next;
+				n->previous = copyNode.previous;
+				*this = *n;
+				/*this->data = new Type(*copyNode.data);
 				this->next = copyNode.next;
-				this->previous = copyNode.previous;
+				this->previous = copyNode.previous;*/
 			} 
 
 			// deconstructor 

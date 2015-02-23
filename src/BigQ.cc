@@ -23,20 +23,19 @@ struct RecordInfo{
 	}
 	
 	RecordInfo(const RecordInfo& obj){
-		cout << "start RecordInfo c'tor" << endl;
+		//cout << "start RecordInfo c'tor" << endl;
 		this->bufferId = obj.bufferId;
 		this->rec = new Record();
-		*this->rec = *(obj.rec);
-		//this->rec.Copy(&obj.rec); 
-		cout << "end RecordInfo c'tor" << endl;
+		*this->rec = *(obj.rec); 
+		//cout << "end RecordInfo c'tor" << endl;
 	}
 
 	bool operator < (const RecordInfo& rInfo) const{
 
-		cout << "start compare operator" << endl;
+		//cout << "start compare operator" << endl;
 		const Record *reca = rec;
 		const Record *recb = (rInfo.rec);
-		cout << "calling ComparisonEngine.Compare()" << endl;
+		//cout << "calling ComparisonEngine.Compare()" << endl;
 		return Compare((void *) reca,(void *) recb) > 0;
 	}
 };
@@ -54,7 +53,7 @@ class CompareRecordInfo{
 		}	
 };
 
-void phasetwo(int num_runs, int runlen, DBFile* dfile){
+void phasetwo(int num_runs, int runlen, DBFile* infile){
 	
 	Schema *schema = new Schema ("data/catalog", "lineitem");
 	int num_buffers = num_runs; // num of runs
@@ -62,107 +61,139 @@ void phasetwo(int num_runs, int runlen, DBFile* dfile){
 	vector <Record> outbuffer;
 	int outpointer;
 	vector<Page> buffers;
-	int pointers[num_buffers];
+	//int pointers[num_buffers];
 
 	priority_queue<RecordInfo> pq;  //greater than comparison -> min pq
 	
 	char * fpath = "lineitem.in";
-	dfile->Open(fpath);
-	dfile->MoveFirst();
-	off_t whichPage = 0;
+	infile->Open(fpath);
+	infile->MoveFirst();
+
+	off_t whichpages[num_buffers];
 
 	cout << "start insertion into pq" << endl;
 	for(int i=0; i<num_buffers; i++){
+		
+		//initialize
+		whichpages[i] = i*runlen;
 
 		// read one page into each buffer
-		Page m_page;
-		if(!dfile->GetPage(&m_page, whichPage)){
+		Page* m_page = new Page();
+		if(!infile->GetPage(m_page, whichpages[i])){
 			cout << "ERROR: Not able to read page" << endl;
 			continue;
 		}
-		if(m_page.GetNumRecs() <=0) continue;
-
-		cout << "read- " << whichPage << " -Page" << endl;
-		cout << "numrecs: " << m_page.GetNumRecs() << endl;
+		if(m_page->GetNumRecs() <=0) continue;
 		
-		buffers.push_back(m_page); 	
-		cout << "read- " << buffers[i].GetNumRecs() << " -Records" << endl;	
-		whichPage += runlen;
-		
-		
+		buffers.push_back(*m_page); 
+			
 		// insert current recInfos into pq --TODO boundary conditions			  
 		RecordInfo recInfo;
 		recInfo.rec = new Record();
-		buffers[i].MoveToStart (); //since getpage advances current to end
-		cout << "Buffer[" << i << "] movedToStart" << endl;
+		buffers[i].MoveToStart(); //since getpage advances current to end
+
 		if(!buffers[i].GetCurrent(recInfo.rec)) {
 			cout << "unable to read current record" << endl;			
 			continue;
 		}
-		cout << "printing record" << endl;
+
 		recInfo.rec->Print(schema);		 
-		recInfo.bufferId = i;
-		cout << "before pushing into pq" << endl;
-		cout << recInfo.rec << endl;
-		pq.push(recInfo);
-		cout << "after  pushing into pq" << endl;
+		recInfo.bufferId = i;		
+		pq.push(recInfo);	
 		
-		// initialize pointers         	
-		pointers[i] =0;
+		delete m_page;
 		                
 	}
 
 	cout << "insertion into pq sucess" << endl;
-	while(!pq.empty()){
+	/*while(!pq.empty()){
 		RecordInfo currentRecInfo = pq.top();
 		pq.pop();
 		Record* current  = currentRecInfo.rec;
 		current->Print(schema);
-	}
-
+	}*/
 	
+	
+	;
+	char * foutpath = "lineitems.sorted";
+	DBFile* outfile = new DBFile();
+	outfile->Create(foutpath, heap, NULL);
+	outfile->Open(foutpath);
 
-	/*int one_buffer_left = 0;
-	while(!pq.empty() && !one_buffer_left){
+	cout << "TPMMS logic start" << endl;
+	
+	int outbuffersize = 0;
+	int one_buffer_left = 0;
+	outpointer = -1;
+
+	/*while(!pq.empty() && !one_buffer_left){
 		RecordInfo currentRecInfo = pq.top();
-		Record current  = currentRecInfo.rec;
-		int bufferindex = currentRecInfo.bufferid;
-		outbuffer.push_back(current);
+		pq.pop();
+		Record* current  = currentRecInfo.rec;
+		int bufferindex = currentRecInfo.bufferId;
+		cout << "least record" << endl;
+		//current->Print();
+		outbuffer.push_back(*current);
+		outbuffersize += current->GetSize();
 		outpointer++;
-		if(outbuffer.full()){
-			diskwrite(tempfile, outbuffer);
-			outpointer = 0;
+		//if output buffer is full write into file
+		if(outbuffersize==PAGE_SIZE){ 
+			for(int i=0; i<outbuffer.size();i++){
+				outfile->Add(outbuffer[i]);	
+			}
+			outbuffersize = 0;
+			outbuffer.clear();
+			outpointer = -1;
 		}		
 
-	
-		//int bufferindex = map.find(current);
-		pointers[bufferindex]++;
-		//map.erase(current);
-		if(pointers[bufferindex] >PAGE_SIZE){
-			diskread(tempfile, buffers[bufferindex]);
-			pointers[bufferindex] = 0;
-		}
 		RecordInfo tempInfo;		
-		tempInfo.rec = buffers[pointers[bufferindex]];
 		tempInfo.bufferId = bufferindex;
-		pq.add(tempInfo);
-		//map.put(temp, bufferindex);
-
+		tempInfo.rec = new Record();
+		if(!buffers[bufferindex].GetCurrent(tempInfo.rec)) {
+			whichpages[bufferindex]++;
+			cout << "reached end of page, so read next page into buffer" << endl;			
+			if(!infile->GetPage(&buffers[bufferindex], whichpages[bufferindex])){
+				cout << "ERROR: Not able to read page" << endl;
+				//continue;
+			}else{
+				buffers[bufferindex].MoveToStart();
+				if(buffers[bufferindex].GetCurrent(tempInfo.rec))
+					pq.push(tempInfo);
+			}
+		}else{
+			//increment pointer to next record
+			cout << "push next record" << endl;
+			pq.push(tempInfo);
+		}
+		
 		if(pq.size()==1)
 			one_buffer_left = 1;	
 	}
 
+	cout << "PROCESSING LAST SORTED RUN" << endl;
+
 	if(one_buffer_left){
 		RecordInfo tempInfo = pq.top();
-		Record temp = tempInfo.rec;
-		int bufferindex = tempInfo.bufferId; //map.find(temp);
-		for(int i=pointers[bufferindex]; i<PAGE_SIZE; i++)
-			tempfile.addRecord(temp);
+		pq.pop();
+		int bufferindex = tempInfo.bufferId;
+		outfile->Add(*tempInfo.rec);
+		tempInfo.rec = new Record();
+		while(buffers[bufferindex].GetCurrent(tempInfo.rec)){		//need to break into small functions !!
+			outfile->Add(*tempInfo.rec);
+		}
 		Page p;
-		while(diskread(tempfile, p))		
-			tempfile.addPage(p);
+		whichpages[bufferindex]++;
+		while(infile->GetPage(&buffers[bufferindex], whichpages[bufferindex]))	{	
+			buffers[bufferindex].MoveToStart();
+			Record *rec = new Record();
+			while(buffers[bufferindex].GetCurrent(rec)){
+				outfile->Add(*rec);
+			}
+			whichpages[bufferindex]++;
+		}
 
 	}*/
+	cout << "PHASE TWO ENDS" << endl;
 
 }
 
@@ -230,7 +261,7 @@ BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
 	while (tempFile.GetNext (temp) == 1) {
 		
 		if (count < 1000) {
-		temp.Print(schema);
+			//temp.Print(schema);
 		}
 		count++;
 	}

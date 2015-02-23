@@ -169,8 +169,9 @@ int DBFile::GetNext (Record &fetchme, CNF &cnf, Record &literal) {
 
 int DBFile:: GetPage (Page *putItHere, off_t whichPage) {
 	cout << "heapfile length" << heapfile->GetLength() << endl;;
-	if (whichPage < heapfile->GetLength()-1)
+	if (whichPage < heapfile->GetLength()-1) {
 		return heapfile->GetPage(putItHere, whichPage);
+	}
 	else if(whichPage <= heapfile->GetLength()){
 		heapfile->AddPage(write_page, cur_page);
                 write_page->EmptyItOut();
@@ -178,5 +179,14 @@ int DBFile:: GetPage (Page *putItHere, off_t whichPage) {
 	}
 	return 0; //whichPage out of range
 }
+
+/*void DBFile :: AddPage(Page *srcPage){
+	
+	Record *rec;
+	while(srcPage->GetCurrent(rec)!=0){
+		this->Add(rec);
+	}	
+
+}*/
 
 

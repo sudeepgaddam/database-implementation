@@ -105,6 +105,11 @@ int Page :: GetCurrent (Record *currentOne) {
 void Page :: MoveToStart() {
    myRecs->MoveToStart(); 
 }
+
+void Page :: MoveToFinish(){
+	myRecs->MoveToFinish();
+}
+
 int Page :: Append (Record *addMe) {
 	char *b = addMe->GetBits();
 
@@ -214,7 +219,7 @@ int File :: GetPage (Page *putItHere, off_t whichPage) {
 		cerr << "BAD: you tried to read past the end of the file\n";
 		return 0; //exit (1);
 	}
-
+	
 	// read in the specified page
 	char *bits = new (std::nothrow) char[PAGE_SIZE];
 	if (bits == NULL)
