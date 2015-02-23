@@ -99,7 +99,7 @@ void test1 (int option, int runlen) {
 	pthread_create (&thread1, NULL, producer, (void *)&input);
 
 	// thread to read sorted data from output pipe (dumped by BigQ)
-	//pthread_t thread2;
+	pthread_t thread2;
 	testutil tutil = {&output, &sortorder, false, false};
 	if (option == 2) {
 		tutil.print = true;
@@ -107,13 +107,13 @@ void test1 (int option, int runlen) {
 	else if (option == 3) {
 		tutil.write = true;
 	}
-	//pthread_create (&thread2, NULL, consumer, (void *)&tutil);
+	pthread_create (&thread2, NULL, consumer, (void *)&tutil);
 
 	cout << "Enter BigQ" << endl;
 	BigQ bq (input, output, sortorder, runlen);
-
+	cout << "Exit BigQ" << endl;
 	pthread_join (thread1, NULL);
-	//pthread_join (thread2, NULL);
+	pthread_join (thread2, NULL);
 }
 
 void test(){

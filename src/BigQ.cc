@@ -53,7 +53,7 @@ class CompareRecordInfo{
 		}	
 };
 
-void phasetwo(int num_runs, int runlen, DBFile* infile){
+void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe &outpipe){
 	
 	Schema *schema = new Schema ("data/catalog", "nation");
 	int num_buffers = num_runs; // num of runs
@@ -139,7 +139,8 @@ void phasetwo(int num_runs, int runlen, DBFile* infile){
 		//if output buffer is full write into file
 		if(outbuffersize==PAGE_SIZE){ 
 			for(int i=0; i<outbuffer.size();i++){
-				outfile->Add(outbuffer[i]);	
+				//outfile->Add(outbuffer[i]);
+				outpipe.Insert(&outbuffer[i]);
 			}
 			outbuffersize = 0;
 			outbuffer.clear();
@@ -170,7 +171,8 @@ void phasetwo(int num_runs, int runlen, DBFile* infile){
 			one_buffer_left = 1;
 			//flush output buffer records even if it is not full - since we are done with all runs
 			for(int i=0; i<outbuffer.size();i++){
-				outfile->Add(outbuffer[i]);	
+				//outfile->Add(outbuffer[i]);
+				outpipe.Insert(&outbuffer[i]);
 			}
 		}
 	}
@@ -182,13 +184,15 @@ void phasetwo(int num_runs, int runlen, DBFile* infile){
 		RecordInfo tempInfo = pq.top();
 		pq.pop();
 		int bufferindex = tempInfo.bufferId;
-		outfile->Add(*tempInfo.rec);
+		//outfile->Add(*tempInfo.rec);
+		outpipe.Insert(tempInfo.rec);
 		//flush all buffer records into outfile		
 		while(true){
 			tempInfo.rec = new Record();
 			if(buffers[bufferindex].GetCurrent(tempInfo.rec)){		//need to break into small functions !!
 				cout << "Add buffer record into file" << endl;
-				outfile->Add(*tempInfo.rec);
+				//outfile->Add(*tempInfo.rec);
+				outpipe.Insert(tempInfo.rec);
 			}else{
 				cout << "End of last buffer!!" << endl;
 				break;
@@ -201,7 +205,8 @@ void phasetwo(int num_runs, int runlen, DBFile* infile){
 			buffers[bufferindex].MoveToStart();
 			Record *rec = new Record();
 			while(buffers[bufferindex].GetCurrent(rec)){
-				outfile->Add(*rec);
+				//outfile->Add(*rec);
+				outpipe.Insert(rec);
 			}
 			whichpages[bufferindex]++;
 		}
@@ -209,7 +214,7 @@ void phasetwo(int num_runs, int runlen, DBFile* infile){
 	}
 	cout << "PHASE TWO ENDS" << endl;
 
-	cout << "Print outfile records -- should be in sorted order" << endl;
+	/*cout << "Print outfile records -- should be in sorted order" << endl;
 	outfile->MoveFirst();
 	Record outrec;
 	int outreccount = 0;
@@ -217,7 +222,7 @@ void phasetwo(int num_runs, int runlen, DBFile* infile){
 		outrec.Print();
 		outreccount++;
 	}
-	cout << "End of outfile!! contains-> " << outreccount << " records" << endl;
+	cout << "End of outfile!! contains-> " << outreccount << " records" << endl;*/
 
 	outfile->Close();
 
@@ -296,8 +301,9 @@ BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
 	tempFile.Close();
 
 	cout << "Success!! PHASE ONE ended with runs=qsortcount: " << runcount << endl;
+	cout << "Infile Records: " << count << endl;
 
-	phasetwo(runcount, runlen, &tempFile);
+	phasetwo(runcount, runlen, &tempFile, out);
 	
 
 	// construct priority queue over sorted runs and dump sorted data 
