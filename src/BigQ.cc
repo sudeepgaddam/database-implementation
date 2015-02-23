@@ -91,15 +91,16 @@ void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe &outpipe){
 		RecordInfo recInfo;
 		recInfo.rec = new Record();
 		buffers[i].MoveToStart(); //since getpage advances current to end
-
-		if(!buffers[i].GetCurrent(recInfo.rec)) {
+		//cout <<" 1. initial right length: " << buffers[i].RightLength() << endl;
+		if(!buffers[i].GetFirst(recInfo.rec)) { //replaced GetCurrent
 			cout << "unable to read current record" << endl;			
 			continue;
-		}
-
-		recInfo.rec->Print(schema);		 
-		recInfo.bufferId = i;		
-		pq.push(recInfo);	
+		}else {
+			recInfo.rec->Print(schema);		 
+			recInfo.bufferId = i;		
+			pq.push(recInfo);
+			cout <<" 2. initial right length: " << buffers[i].RightLength() << endl;
+		}			
 		
 		delete m_page;
 		                
@@ -131,16 +132,16 @@ void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe &outpipe){
 		pq.pop();
 		Record* current  = currentRecInfo.rec;
 		int bufferindex = currentRecInfo.bufferId;
-		cout << "least record" << endl;
-		current->Print();
+		//cout << "least buffer index: " << bufferindex << endl;
+		//current->Print();
 		outbuffer.push_back(*current);
 		outbuffersize += current->GetSize();
 		outpointer++;
 		//if output buffer is full write into file
 		if(outbuffersize==PAGE_SIZE){ 
 			for(int i=0; i<outbuffer.size();i++){
-				outfile->Add(outbuffer[i]);
-				//outpipe.Insert(&outbuffer[i]);
+				//outfile->Add(outbuffer[i]);
+				outpipe.Insert(&outbuffer[i]);
 			}
 			outbuffersize = 0;
 			outbuffer.clear();
@@ -150,22 +151,25 @@ void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe &outpipe){
 		RecordInfo tempInfo;		
 		tempInfo.bufferId = bufferindex;
 		tempInfo.rec = new Record();
-		if(!buffers[bufferindex].GetCurrent(tempInfo.rec)) {
+		//cout <<" 3. initial right length: " << buffers[bufferindex].RightLength() << endl;
+		if(!buffers[bufferindex].GetFirst(tempInfo.rec)) { //replaced GetCurrent
 			whichpages[bufferindex]++;
-			cout << "reached end of page, so read next page into buffer" << endl;			
+			//cout << "reached end of page, so read next page into buffer" << endl;			
 			if(whichpages[bufferindex] < (bufferindex+1)*runlen && !infile->GetPage(&buffers[bufferindex], whichpages[bufferindex])){
 				cout << "ERROR: Not able to read page" << endl;
 				//continue;
 			}else if(whichpages[bufferindex] < (bufferindex+1)*runlen){
 				buffers[bufferindex].MoveToStart();
-				if(buffers[bufferindex].GetCurrent(tempInfo.rec)){
+				if(buffers[bufferindex].GetFirst(tempInfo.rec)){ //replaced GetCurrent
 					pq.push(tempInfo);
 				}
 			}
 		}else{
 			//increment pointer to next record
-			cout << "push next record" << endl;
-			tempInfo.rec->Print(schema);
+			//cout << "push next record" << endl;
+			//cout <<" later right length: " << buffers[bufferindex].RightLength() << endl;
+			//tempInfo.rec->Print(schema);
+			//cout <<" 4. initial right length: " << buffers[bufferindex].RightLength() << endl;
 			pq.push(tempInfo);
 		}
 		
@@ -173,8 +177,8 @@ void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe &outpipe){
 			one_buffer_left = 1;
 			//flush output buffer records even if it is not full - since we are done with all runs
 			for(int i=0; i<outbuffer.size();i++){
-				outfile->Add(outbuffer[i]);
-				//outpipe.Insert(&outbuffer[i]);
+				//outfile->Add(outbuffer[i]);
+				outpipe.Insert(&outbuffer[i]);
 			}
 			outbuffer.clear();
 		}
@@ -188,16 +192,16 @@ void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe &outpipe){
 		pq.pop();
 		int bufferindex = tempInfo.bufferId;
 		//tempInfo.rec->Print(schema);
-		outfile->Add(*tempInfo.rec);
-		//outpipe.Insert(tempInfo.rec);
+		//outfile->Add(*tempInfo.rec);
+		outpipe.Insert(tempInfo.rec);
 		//flush all buffer records into outfile		
 		while(true){
 			tempInfo.rec = new Record();
-			if(buffers[bufferindex].GetCurrent(tempInfo.rec)){		//need to break into small functions !!
-				cout << "Add buffer record into file" << endl;
+			if(buffers[bufferindex].GetFirst(tempInfo.rec)){	//replaced GetCurrent	//need to break into small functions !!
+				//cout << "Add buffer record into file" << endl;
 				//tempInfo.rec->Print(schema);
-				outfile->Add(*tempInfo.rec);
-				//outpipe.Insert(tempInfo.rec);
+				//outfile->Add(*tempInfo.rec);
+				outpipe.Insert(tempInfo.rec);
 			}else{
 				cout << "End of last buffer!!" << endl;
 				break;
@@ -209,10 +213,10 @@ void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe &outpipe){
 		while(whichpages[bufferindex] < (bufferindex+1)*runlen  && infile->GetPage(&buffers[bufferindex], whichpages[bufferindex]))	{	
 			buffers[bufferindex].MoveToStart();
 			Record *rec = new Record();
-			while(buffers[bufferindex].GetCurrent(rec)){
+			while(buffers[bufferindex].GetFirst(rec)){   //replaced GetCurrent
 				//rec->Print(schema);
-				outfile->Add(*rec);
-				//outpipe.Insert(rec);
+				//outfile->Add(*rec);
+				outpipe.Insert(rec);
 			}
 			whichpages[bufferindex]++;
 		}
@@ -228,7 +232,7 @@ void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe &outpipe){
 		//outrec.Print();
 		outreccount++;
 	}
-	cout << "End of outfile!! contains-> " << outreccount << " records" << endl;
+	cout << "End of outfile!! contains-> " << outreccount << " records" << endl;	
 
 	outfile->Close();
 

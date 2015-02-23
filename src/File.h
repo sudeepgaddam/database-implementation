@@ -57,6 +57,8 @@ public:
 
 	void Print ();
 
+	int RightLength();
+
 };
 
 

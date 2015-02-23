@@ -9,6 +9,10 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+int Page :: RightLength(){
+	return myRecs->RightLength();
+}
+
 int Page :: GetNumRecs(){
 	return numRecs;
 }
