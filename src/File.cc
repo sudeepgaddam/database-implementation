@@ -30,7 +30,7 @@ Page :: Page () {
 }
 
 Page :: ~Page () {
-	cout << "PAGE DESTRUCTOR" << endl;
+	//cout << "PAGE DESTRUCTOR" << endl;
 	delete myRecs;
 }
 
@@ -287,7 +287,7 @@ void File :: Open (int fileLen, char *fName) {
                 mode = O_TRUNC | O_RDWR | O_CREAT;
         else
                 mode = O_RDWR;
-	cout << "Before OPENED FILE" << endl;
+	//cout << "Before OPENED FILE" << endl;
 
 	// actually do the open
         myFilDes = open (fName, mode, S_IRUSR | S_IWUSR);

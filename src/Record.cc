@@ -410,8 +410,11 @@ int Record :: GetSize(){
 }
 
 void Record :: Print(){
-	Schema *schema = new Schema ("data/catalog", "lineitem");
-	Print(schema);
+	Schema *rschema = new Schema ("data/catalog", "region");
+	Schema *lschema = new Schema ("data/catalog", "lineitem");
+	Schema *psschema = new Schema ("data/catalog", "partsupp");
+	Schema *pschema = new Schema ("data/catalog", "part");
+	Print(pschema);
 }
 
 

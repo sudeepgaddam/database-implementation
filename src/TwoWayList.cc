@@ -141,7 +141,7 @@ TwoWayList <Type> :: TwoWayList ()
 template <class Type>
 TwoWayList <Type> :: ~TwoWayList ()
 {
-	cout << "TWOWAYLIST DESTRUCTOR" << endl;
+	//cout << "TWOWAYLIST DESTRUCTOR" << endl;
 	// remove everything
 	MoveToStart ();
 	while (RightLength ()>0) {

@@ -19,7 +19,7 @@
 #endif
 
 DBFile::~DBFile(){
-	cout << "DBFile DESTRUCTOR" << endl;
+	//cout << "DBFile DESTRUCTOR" << endl;
 	delete heapfile;
 	delete read_page;
 	delete write_page;
@@ -112,7 +112,7 @@ int DBFile::GetNext (Record &fetchme) {
 			    return 0;
 			} else if (write_page->GetNumRecs() > 0) {
 		            //Copy write page to read page
-			    cout << "Reading Records from write page" << endl;
+			    //cout << "Reading Records from write page" << endl;
                             heapfile->AddPage(write_page, cur_page);
                             write_page->EmptyItOut();
             		    read_page->EmptyItOut();
@@ -168,7 +168,7 @@ int DBFile::GetNext (Record &fetchme, CNF &cnf, Record &literal) {
 }
 
 int DBFile:: GetPage (Page *putItHere, off_t whichPage) {
-	cout << "heapfile length" << heapfile->GetLength() << endl;;
+	//cout << "heapfile length" << heapfile->GetLength() << endl;;
 	if (whichPage < heapfile->GetLength()-1) {
 		return heapfile->GetPage(putItHere, whichPage);
 	}

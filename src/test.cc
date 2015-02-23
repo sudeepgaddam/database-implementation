@@ -12,7 +12,13 @@ void *producer (void *arg) {
 	DBFile dbfile;
 	dbfile.Create(rel->path(), heap,NULL);
 	dbfile.Open (rel->path ());
-	dbfile.Load(*(rel->schema ()), "tpc-h/lineitem.tbl");
+	//dbfile.Load(*(rel->schema ()), "tpc-h/part.tbl");
+
+	char tbl_path[100]; // construct path of the tpch flat text file
+	sprintf (tbl_path, "%s%s.tbl", tpch_dir, rel->name()); 
+	cout << " tpch file will be loaded from " << tbl_path << endl;
+	dbfile.Load (*(rel->schema ()), tbl_path);
+
 	cout << " producer: opened DBFile " << rel->path () << endl;
 	dbfile.MoveFirst ();
 
@@ -40,6 +46,7 @@ void *consumer (void *arg) {
 	char outfile[100];
 
 	if (t->write) {
+		//rel->info();
 		sprintf (outfile, "%s.bigq", rel->path ());
 		dbfile.Create (outfile, heap, NULL);
 	}
@@ -110,9 +117,9 @@ void test1 (int option, int runlen) {
 	}
 	pthread_create (&thread2, NULL, consumer, (void *)&tutil);
 
-	cout << "Enter BigQ" << endl;
+	//cout << "Enter BigQ" << endl;
 	BigQ bq (input, output, sortorder, runlen);
-	cout << "Exit BigQ" << endl;
+	//cout << "Exit BigQ" << endl;
 	pthread_join (thread1, NULL);
 	pthread_join (thread2, NULL);
 }
