@@ -12,7 +12,7 @@ void *producer (void *arg) {
 	DBFile dbfile;
 	dbfile.Create(rel->path(), heap,NULL);
 	dbfile.Open (rel->path ());
-	dbfile.Load(*(rel->schema ()), "tpc-h/nation.tbl");
+	dbfile.Load(*(rel->schema ()), "tpc-h/lineitem.tbl");
 	cout << " producer: opened DBFile " << rel->path () << endl;
 	dbfile.MoveFirst ();
 
@@ -67,6 +67,7 @@ void *consumer (void *arg) {
 		}
 		i++;
 	}
+
 
 	cout << " consumer: removed " << i << " recs from the pipe\n";
 

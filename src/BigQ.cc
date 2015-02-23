@@ -55,7 +55,7 @@ class CompareRecordInfo{
 
 void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe &outpipe){
 	
-	Schema *schema = new Schema ("data/catalog", "nation");
+	Schema *schema = new Schema ("data/catalog", "lineitem");
 	int num_buffers = num_runs; // num of runs
 	
 	vector <Record> outbuffer;
@@ -132,15 +132,15 @@ void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe &outpipe){
 		Record* current  = currentRecInfo.rec;
 		int bufferindex = currentRecInfo.bufferId;
 		cout << "least record" << endl;
-		//current->Print();
+		current->Print();
 		outbuffer.push_back(*current);
 		outbuffersize += current->GetSize();
 		outpointer++;
 		//if output buffer is full write into file
 		if(outbuffersize==PAGE_SIZE){ 
 			for(int i=0; i<outbuffer.size();i++){
-				//outfile->Add(outbuffer[i]);
-				outpipe.Insert(&outbuffer[i]);
+				outfile->Add(outbuffer[i]);
+				//outpipe.Insert(&outbuffer[i]);
 			}
 			outbuffersize = 0;
 			outbuffer.clear();
@@ -153,17 +153,19 @@ void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe &outpipe){
 		if(!buffers[bufferindex].GetCurrent(tempInfo.rec)) {
 			whichpages[bufferindex]++;
 			cout << "reached end of page, so read next page into buffer" << endl;			
-			if(!infile->GetPage(&buffers[bufferindex], whichpages[bufferindex])){
+			if(whichpages[bufferindex] < (bufferindex+1)*runlen && !infile->GetPage(&buffers[bufferindex], whichpages[bufferindex])){
 				cout << "ERROR: Not able to read page" << endl;
 				//continue;
-			}else{
+			}else if(whichpages[bufferindex] < (bufferindex+1)*runlen){
 				buffers[bufferindex].MoveToStart();
-				if(buffers[bufferindex].GetCurrent(tempInfo.rec))
+				if(buffers[bufferindex].GetCurrent(tempInfo.rec)){
 					pq.push(tempInfo);
+				}
 			}
 		}else{
 			//increment pointer to next record
 			cout << "push next record" << endl;
+			tempInfo.rec->Print(schema);
 			pq.push(tempInfo);
 		}
 		
@@ -171,9 +173,10 @@ void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe &outpipe){
 			one_buffer_left = 1;
 			//flush output buffer records even if it is not full - since we are done with all runs
 			for(int i=0; i<outbuffer.size();i++){
-				//outfile->Add(outbuffer[i]);
-				outpipe.Insert(&outbuffer[i]);
+				outfile->Add(outbuffer[i]);
+				//outpipe.Insert(&outbuffer[i]);
 			}
+			outbuffer.clear();
 		}
 	}
 
@@ -184,15 +187,17 @@ void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe &outpipe){
 		RecordInfo tempInfo = pq.top();
 		pq.pop();
 		int bufferindex = tempInfo.bufferId;
-		//outfile->Add(*tempInfo.rec);
-		outpipe.Insert(tempInfo.rec);
+		//tempInfo.rec->Print(schema);
+		outfile->Add(*tempInfo.rec);
+		//outpipe.Insert(tempInfo.rec);
 		//flush all buffer records into outfile		
 		while(true){
 			tempInfo.rec = new Record();
 			if(buffers[bufferindex].GetCurrent(tempInfo.rec)){		//need to break into small functions !!
 				cout << "Add buffer record into file" << endl;
-				//outfile->Add(*tempInfo.rec);
-				outpipe.Insert(tempInfo.rec);
+				//tempInfo.rec->Print(schema);
+				outfile->Add(*tempInfo.rec);
+				//outpipe.Insert(tempInfo.rec);
 			}else{
 				cout << "End of last buffer!!" << endl;
 				break;
@@ -201,12 +206,13 @@ void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe &outpipe){
 		//delete tempInfo;
 		Page p;
 		whichpages[bufferindex]++;
-		while(infile->GetPage(&buffers[bufferindex], whichpages[bufferindex]))	{	
+		while(whichpages[bufferindex] < (bufferindex+1)*runlen  && infile->GetPage(&buffers[bufferindex], whichpages[bufferindex]))	{	
 			buffers[bufferindex].MoveToStart();
 			Record *rec = new Record();
 			while(buffers[bufferindex].GetCurrent(rec)){
-				//outfile->Add(*rec);
-				outpipe.Insert(rec);
+				//rec->Print(schema);
+				outfile->Add(*rec);
+				//outpipe.Insert(rec);
 			}
 			whichpages[bufferindex]++;
 		}
@@ -214,15 +220,15 @@ void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe &outpipe){
 	}
 	cout << "PHASE TWO ENDS" << endl;
 
-	/*cout << "Print outfile records -- should be in sorted order" << endl;
+	cout << "Print outfile records -- should be in sorted order" << endl;
 	outfile->MoveFirst();
 	Record outrec;
 	int outreccount = 0;
 	while (outfile->GetNext (outrec) == 1) {
-		outrec.Print();
+		//outrec.Print();
 		outreccount++;
 	}
-	cout << "End of outfile!! contains-> " << outreccount << " records" << endl;*/
+	cout << "End of outfile!! contains-> " << outreccount << " records" << endl;
 
 	outfile->Close();
 
@@ -238,7 +244,7 @@ BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
 	// read data from in pipe sort them into runlen pages
 	Record rec;
 	Record temp;
-    	Schema *schema = new Schema ("data/catalog", "nation");
+    	Schema *schema = new Schema ("data/catalog", "lineitem");
 	DBFile tempFile;
 	char * fpath = "lineitem.in";
 	tempFile.Create(fpath, heap, NULL);
@@ -263,7 +269,8 @@ BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
 		else{
 			runcount++;
 			cout << "One Run Completed. Run count" << runcount<<endl;
-			
+			cout << recordcount << " records present in run: " << runcount << endl;			
+	
 			qsort((void *) &vrec[0], recordcount-1, sizeof(Record), Compare);
 			
 			for(int i=0; i<recordcount-1; i++){
@@ -276,8 +283,8 @@ BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
 		}
 	}
 	
-	//cout << "finished reading: recs - " << recordcount << endl;
-	//cout << "finished reading: runs - " << runcount << endl;
+	cout << "finished reading: recs - " << recordcount << endl;
+	cout << "finished reading: runs - " << runcount << endl;
 				
 	int vsize = recordcount;//vrec.size();
 	if(vsize >0) { 
