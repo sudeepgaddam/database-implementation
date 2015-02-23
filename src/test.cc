@@ -12,7 +12,7 @@ void *producer (void *arg) {
 	DBFile dbfile;
 	dbfile.Create(rel->path(), heap,NULL);
 	dbfile.Open (rel->path ());
-	dbfile.Load(*(rel->schema ()), "tpc-h/lineitem.tbl");
+	dbfile.Load(*(rel->schema ()), "tpc-h/nation.tbl");
 	cout << " producer: opened DBFile " << rel->path () << endl;
 	dbfile.MoveFirst ();
 
