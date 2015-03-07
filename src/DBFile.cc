@@ -15,29 +15,18 @@ DBFile::~DBFile(){
 }
 DBFile::DBFile () {
 }
-
+/* Based on fType, Instantiate the respective DBFile
+ * Leave the metadata filling part to respective create function
+ */
 int DBFile::Create (char *f_path, fType f_type, void *startup) {
-        char tbl_path[100];
-	string text_data;
-        sprintf (tbl_path, "%s.meta", f_path);
-
-	ofstream out(tbl_path);
-   	if(!out ) {
-           cout << "Couldn't open file."  << endl;
-   	}
 	if (f_type == heap) {
 		cout << "Heap file creation" <<endl;
-		text_data = "heap";	
 	        gendbfile = new HeapDBFile();
 	} else if(f_type = sorted) {
 		cout << "Sorted file creation" <<endl;
-		text_data = "sorted";	
 	        gendbfile = new SortedDBFile();
 	}
-	cout << "Text data written : " <<text_data <<" into file: "<< tbl_path << " "<< endl;
-	out << text_data; 
 	gendbfile->Create(f_path, f_type, startup);
-    return 1;
 }
     
 void DBFile::Add (Record &rec) {
@@ -53,6 +42,10 @@ int DBFile::Open (char *f_path) {
         string line;
         sprintf (tbl_path, "%s.meta", f_path);
 	ifstream myfile (tbl_path);
+	if(!myfile ) {
+      	    cout << "Couldn't open metadata file for reading"  << endl;
+      	    return 1;
+    	}
   	if (myfile.is_open()) {
 		if (getline (myfile,line)) {
 		    if (line.compare("heap") == 0) {

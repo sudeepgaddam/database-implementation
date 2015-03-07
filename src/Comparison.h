@@ -6,7 +6,7 @@
 #include "File.h"
 #include "Comparison.h"
 #include "ComparisonEngine.h"
-
+#include <fstream>
 
 // This stores an individual comparison that is part of a CNF
 class Comparison {
@@ -59,6 +59,11 @@ public:
 
 	// print to the screen
 	void Print ();
+	// print to the metadata File. Useful to know the filetype after closing and re-opening
+	// the dbfile
+	void FilePrint (ofstream &of);
+	void PutFromFile (ifstream &ifs);
+
 };
 
 class Record;

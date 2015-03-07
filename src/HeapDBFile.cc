@@ -17,11 +17,19 @@ HeapDBFile::~HeapDBFile(){
 HeapDBFile::HeapDBFile () {
     cur_page = 0;
     read_page = new Page();
+    heapfile = new File();
+    write_page   = new Page();
 }
 
 int HeapDBFile::Create (char *f_path, fType f_type, void *startup) {
-    heapfile = new File();
-    write_page   = new Page();
+    char tbl_path[100];
+    sprintf (tbl_path, "%s.meta", f_path);
+
+    ofstream out(tbl_path);
+    if(!out ) {
+       cout << "Couldn't open file."  << endl;
+    }
+    out << "heap";
     heapfile->Open(0, f_path);
     return 1;
 }

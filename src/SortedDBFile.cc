@@ -7,7 +7,7 @@
 #include "ComparisonEngine.h"
 #include "SortedDBFile.h"
 #include "Defs.h"
-
+#include <sstream>
 SortedDBFile::~SortedDBFile(){
 	cout << "Sorted DBFile DESTRUCTOR" << endl;
 	delete heapfile;
@@ -20,10 +20,44 @@ SortedDBFile::SortedDBFile () {
     read_page = new Page();
     heapfile = new File();
     write_page   = new Page();
+    in_pipe = new Pipe(100);
+    out_pipe = new Pipe(100);
 }
 
+int SortedDBFile::GetFromMetaData (ifstream &ifs) {
+	string line;
+	if (ifs.is_open()) {
+	    getline (ifs,line); //"sorted"
+	    getline (ifs,line); // runLength
+	    std::stringstream s_str( line);
+    	    s_str >> runLength;
+    	    myOrder = new OrderMaker();
+	    myOrder->PutFromFile(ifs);
+	}
+}
+/* 
+ * in Write mode during creation; 
+ * Setup Bigq using the ordermaker and num_runs provided
+ * Add this info to metadata too
+ */
 int SortedDBFile::Create (char *f_path, fType f_type, void *startup) {
+    mode = Write;
+    SortInfo *sortinfo;
     cout << "Sorted DBFile Create called" << f_path<<endl;
+    char tbl_path[100];
+    sprintf (tbl_path, "%s.meta", f_path);
+    ofstream out(tbl_path);
+    if(!out ) {
+       cout << "Couldn't open file."  << endl;
+    }
+    out << "sorted" <<endl;
+    sortinfo  = (SortInfoDef *)startup;
+    runLength = sortinfo->runLength;
+    myOrder = new OrderMaker();
+    *myOrder = *(sortinfo->myOrder);
+    out << runLength << endl;
+    myOrder->Print();
+    myOrder->FilePrint(out);
     heapfile->Open(0, f_path);
     return 1;
 }
@@ -54,22 +88,19 @@ void SortedDBFile::Load (Schema &f_schema, char *loadpath) {
         	Add(temp_rec);
     	}
     }
-    #if 0
-        Page rPage;
-        Record rRec;
-        off_t offset = 1;
-        heapfile->GetPage(&rPage, offset);
-        while(rPage.GetFirst(&rRec))
-                rRec.Print(&f_schema);
-        cout << "END" << endl;
-    #endif
 }
 
 int SortedDBFile::Open (char *f_path) {
-    //todo:check again
-	cout <<"Sorted file opening from " << f_path <<endl;
+    cout <<"Sorted file opening from " << f_path <<endl;
+    char tbl_path[100];
+    sprintf (tbl_path, "%s.meta", f_path);
+
+    ifstream in(tbl_path);
+    if(!in) {
+       cout << "Couldn't open file."  << endl;
+    }
+    GetFromMetaData(in);
     heapfile->Open(1, f_path);
-    return 1;
 }
 
 void SortedDBFile::MoveFirst () {

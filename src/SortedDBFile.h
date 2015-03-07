@@ -7,7 +7,17 @@
 #include "File.h"
 #include "Comparison.h"
 #include "ComparisonEngine.h"
+#include "Pipe.h"
+#include "BigQ.h"
 #include "GenericDBFile.h"
+
+typedef enum {Read, Write} Mode;
+
+
+typedef struct SortInfo {
+	OrderMaker *myOrder;
+	int runLength;
+}SortInfoDef; 
 
 class SortedDBFile : virtual public GenericDBFile {
 
@@ -18,6 +28,12 @@ private:
     int cur_page;     //Current Page being read. 0 means no pages to read
     bool dirty;       //If true, current page being read is dirty(Not yet written to disk). 
     fType type;
+    Mode mode;
+    Pipe *in_pipe;
+    Pipe *out_pipe;
+    BigQ *sortq;
+    int runLength;
+    OrderMaker *myOrder; 
 
 public:
     //Constructor
@@ -50,6 +66,12 @@ public:
 	void Add (Record &addme);
 	int GetNext (Record &fetchme);
 	int GetNext (Record &fetchme, CNF &cnf, Record &literal);
+	/* Given an out stream reference to meta datafile
+	 * Get ordermaker and runlength
+     	 * @return 1 : success
+     	 *         0 : error
+     	 */
+	int GetFromMetaData (ifstream &ifs);
 
 	//page level read and wirte
 	int GetPage (Page *putItHere, off_t whichPage);

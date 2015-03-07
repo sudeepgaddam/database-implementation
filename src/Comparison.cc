@@ -1,11 +1,11 @@
-#include <stdio.h>
 #include <iostream>
+#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-
+#include <fstream>
 #include "Comparison.h"
-
-
+#include <string>
+#include <sstream>
+using namespace std;
 Comparison::Comparison()
 {
 }
@@ -115,6 +115,43 @@ void OrderMaker :: Print () {
 		else
 			printf("String\n");
 	}
+}
+
+void OrderMaker :: FilePrint (ofstream &fileout) {
+	fileout << numAtts << endl; 
+	for (int i = 0; i < numAtts; i++)
+	{
+		fileout << whichAtts[i] << endl; 
+		if (whichTypes[i] == Int)
+			fileout << "Int" << endl; 
+		else if (whichTypes[i] == Double)
+			fileout << "Double" << endl; 
+		else
+			fileout << "String" << endl; 
+	}
+}
+
+
+void OrderMaker :: PutFromFile (ifstream &ifs) {
+    string line;
+    getline (ifs,line); // numAtts
+    std::stringstream s_str( line);
+    s_str >> numAtts;
+    //numAtts = atoi(line.c_str);
+    for (int i =0; i<numAtts; i++) {
+         getline (ifs,line); // attribute/Coloumn number
+         std::stringstream s_str( line);
+    	 s_str >> whichAtts[i];
+         getline (ifs,line); // Type of attr
+         if (line.compare("Int") == 0) {
+             whichTypes[i] = Int;
+         } else if (line.compare("Double") == 0) {
+             whichTypes[i] = Double;
+         } else if (line.compare("String") == 0) {
+             whichTypes[i] = String;
+         }
+     }
+	Print();
 }
 
 int CNF :: getNumAnds(){

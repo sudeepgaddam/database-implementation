@@ -217,7 +217,9 @@ void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe &outpipe){
 
 
 BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
-	
+	//PipeOrders *pipes;
+	//pthread_t thread1;
+	//pthread_create (&thread1, NULL, sortqueue, (void *)&input);	
 	localOrder = &sortorder;
 	int count = 0;
 
