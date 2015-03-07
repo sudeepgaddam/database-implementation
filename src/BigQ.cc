@@ -215,12 +215,13 @@ void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe &outpipe){
 }
 
 
-
-BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
-	//PipeOrders *pipes;
-	//pthread_t thread1;
-	//pthread_create (&thread1, NULL, sortqueue, (void *)&input);	
-	localOrder = &sortorder;
+void *bigqthread (void *arg) {
+	PipeOrders *pipes = (PipeOrders *) arg;
+	Pipe &in = *(pipes->inPipe);
+	Pipe &out = *(pipes->outPipe);
+	OrderMaker *sortorder = pipes->order;
+	int runlen = pipes->runLength;
+	localOrder = sortorder;
 	int count = 0;
 
 	// read data from in pipe sort them into runlen pages
@@ -312,6 +313,16 @@ BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
 	cout << "=============== end  TPMMS ===============" << endl;
 	cout << endl;
 	cout << endl;
+	
+}
+BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
+	PipeOrders pipes;
+	pipes.inPipe  = &in;
+	pipes.outPipe = &out;
+	pipes.order = &sortorder;
+	pipes.runLength = runlen;
+	pthread_t thread1;
+	pthread_create (&thread1, NULL, bigqthread, (void *)&pipes);	
 }
 
 BigQ::~BigQ () {

@@ -35,6 +35,10 @@ private:
     int runLength;
     OrderMaker *myOrder; 
 
+    /* Helper functions; Need not be exposed outside. Putting in private
+     */
+    void DestroyPipeQ ();
+    void BuildPipeQ ();
 public:
     //Constructor
 	SortedDBFile ();

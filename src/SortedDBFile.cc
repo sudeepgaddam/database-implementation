@@ -8,6 +8,9 @@
 #include "SortedDBFile.h"
 #include "Defs.h"
 #include <sstream>
+
+
+
 SortedDBFile::~SortedDBFile(){
 	cout << "Sorted DBFile DESTRUCTOR" << endl;
 	delete heapfile;
@@ -20,10 +23,22 @@ SortedDBFile::SortedDBFile () {
     read_page = new Page();
     heapfile = new File();
     write_page   = new Page();
+    myOrder = new OrderMaker();
+}
+/* Called during mode change from write to read
+ */
+void SortedDBFile::DestroyPipeQ() {
+	delete in_pipe;
+	delete out_pipe;
+	delete sortq;
+}
+/* Called during mode change from read to write
+ */
+void SortedDBFile::BuildPipeQ() {
     in_pipe = new Pipe(100);
     out_pipe = new Pipe(100);
+    sortq = new BigQ(*in_pipe, *out_pipe, *myOrder, runLength);
 }
-
 int SortedDBFile::GetFromMetaData (ifstream &ifs) {
 	string line;
 	if (ifs.is_open()) {
@@ -31,16 +46,16 @@ int SortedDBFile::GetFromMetaData (ifstream &ifs) {
 	    getline (ifs,line); // runLength
 	    std::stringstream s_str( line);
     	    s_str >> runLength;
-    	    myOrder = new OrderMaker();
 	    myOrder->PutFromFile(ifs);
 	}
 }
 /* 
  * in Write mode during creation; 
- * Setup Bigq using the ordermaker and num_runs provided
  * Add this info to metadata too
+ * Setup Bigq using the ordermaker and num_runs provided
  */
 int SortedDBFile::Create (char *f_path, fType f_type, void *startup) {
+	//Make the mode as write
     mode = Write;
     SortInfo *sortinfo;
     cout << "Sorted DBFile Create called" << f_path<<endl;
@@ -53,20 +68,32 @@ int SortedDBFile::Create (char *f_path, fType f_type, void *startup) {
     out << "sorted" <<endl;
     sortinfo  = (SortInfoDef *)startup;
     runLength = sortinfo->runLength;
-    myOrder = new OrderMaker();
+	//Copy myOrder
     *myOrder = *(sortinfo->myOrder);
     out << runLength << endl;
     myOrder->Print();
+	//Write myOrder to metadata file
     myOrder->FilePrint(out);
+	//Setup Pipes and BigQ
+    BuildPipeQ();
     heapfile->Open(0, f_path);
     return 1;
 }
     
-/* Add to records to write page, if write page is full
-   write that full page to dbfile, create a new write page and add the record */
-
+/* If in write mode, write to in_pipe. If we wrote PAGESIZE*runLength into 
+ * in_pipe, Time to get sorted records from out_pipe and write to DBFile
+ * If in read mode, just change to write mode, Instantiate BigQ and write to in_pipe
+ */
 void SortedDBFile::Add (Record &rec) {
-    int ret;
+    if (mode == Write) {
+	in_pipe->Insert(&rec);
+    } else if (mode == Read) {
+	//sortq would be null; Instantiate it and the pipes
+	mode = Write;
+	BuildPipeQ();
+	in_pipe->Insert(&rec);
+    }     
+    /*int ret;
     ret = write_page->Append(&rec); 
     if (ret == 0) {
         //Could not fit in page; Add it to File
@@ -75,7 +102,7 @@ void SortedDBFile::Add (Record &rec) {
         heapfile->AddPage(write_page, whichpage);
         write_page->EmptyItOut();
         write_page->Append(&rec);
-    }
+    }*/
 }
 
 void SortedDBFile::Load (Schema &f_schema, char *loadpath) {
@@ -99,6 +126,7 @@ int SortedDBFile::Open (char *f_path) {
     if(!in) {
        cout << "Couldn't open file."  << endl;
     }
+	//Write myOrder ordermaker and runlength from meta data file
     GetFromMetaData(in);
     heapfile->Open(1, f_path);
 }
