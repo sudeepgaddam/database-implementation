@@ -1,5 +1,5 @@
-#ifndef DBFILE_H
-#define DBFILE_H
+#ifndef GENERICDBFILE_H
+#define GENERICDBFILE_H
 
 #include "TwoWayList.h"
 #include "Record.h"
@@ -7,47 +7,46 @@
 #include "File.h"
 #include "Comparison.h"
 #include "ComparisonEngine.h"
-#include "HeapDBFile.h"
-#include "SortedDBFile.h"
 
-class DBFile {
 
-private:
-	GenericDBFile *gendbfile;
+typedef enum {heap, sorted, tree} fType;
+
+class GenericDBFile {
+
 public:
     //Constructor
-	DBFile ();
+	GenericDBFile ();
     //Destructor
-    ~DBFile (); 
+    ~GenericDBFile (); 
     /*
      * Creates the file using fpath and file type can be heap, tree, sorted
      * Need to store the file information in metafile *.header
      * @return 1 : success
      *         0 : error
      */
-	int Create (char *fpath, fType file_type, void *startup);
+virtual	int Create (char *fpath, fType file_type, void *startup);
     /*
      * Open the file given by fpath 
      * @return 1 : success
      *         0 : error
      */
-	int Open (char *fpath);
+virtual	int Open (char *fpath);
     /*
      * close the opened file. 
      * @return 1 : success
      *         0 : error
      */
-	int Close ();
+virtual	int Close ();
 
-	void Load (Schema &myschema, char *loadpath);
+virtual	void Load (Schema &myschema, char *loadpath);
 
-	void MoveFirst ();
-	void Add (Record &addme);
-	int GetNext (Record &fetchme);
-	int GetNext (Record &fetchme, CNF &cnf, Record &literal);
+virtual	void MoveFirst ();
+virtual	void Add (Record &addme);
+virtual	int GetNext (Record &fetchme);
+virtual	int GetNext (Record &fetchme, CNF &cnf, Record &literal);
 
 	//page level read and wirte
-	int GetPage (Page *putItHere, off_t whichPage);
+virtual	int GetPage (Page *putItHere, off_t whichPage);
 	//void AddPage(Page *srcPage);
 	
 };

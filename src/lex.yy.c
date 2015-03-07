@@ -473,14 +473,14 @@ static int yy_more_len = 0;
 #define YY_MORE_ADJ (yy_more_len)
 #define YY_RESTORE_YY_MORE_OFFSET
 char *yytext;
-#line 1 "/cise/homes/sandeep/Desktop/db-implementation/src/Lexer.l"
+#line 1 "/cise/homes/sgaddam/db-implementation/src/Lexer.l"
 /***********************************************************************
  * SECTION 1
  ***********************************************************************/
 /* The code in %{ %} is included as it is in lex.yy.c file
  * it has C global variables, prototypes, and comments 
  */
-#line 10 "/cise/homes/sandeep/Desktop/db-implementation/src/Lexer.l"
+#line 10 "/cise/homes/sgaddam/db-implementation/src/Lexer.l"
 
 #include <string.h> // For strdup()
 #include <stdlib.h> // For malloc()
@@ -689,7 +689,7 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
     
-#line 36 "/cise/homes/sandeep/Desktop/db-implementation/src/Lexer.l"
+#line 36 "/cise/homes/sgaddam/db-implementation/src/Lexer.l"
 
 
 #line 696 "lex.yy.c"
@@ -783,56 +783,56 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 38 "/cise/homes/sandeep/Desktop/db-implementation/src/Lexer.l"
+#line 38 "/cise/homes/sgaddam/db-implementation/src/Lexer.l"
 return('(');
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 40 "/cise/homes/sandeep/Desktop/db-implementation/src/Lexer.l"
+#line 40 "/cise/homes/sgaddam/db-implementation/src/Lexer.l"
 return(')');
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 42 "/cise/homes/sandeep/Desktop/db-implementation/src/Lexer.l"
+#line 42 "/cise/homes/sgaddam/db-implementation/src/Lexer.l"
 return('<');
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 44 "/cise/homes/sandeep/Desktop/db-implementation/src/Lexer.l"
+#line 44 "/cise/homes/sgaddam/db-implementation/src/Lexer.l"
 return('>');
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 46 "/cise/homes/sandeep/Desktop/db-implementation/src/Lexer.l"
+#line 46 "/cise/homes/sgaddam/db-implementation/src/Lexer.l"
 return('=');
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 48 "/cise/homes/sandeep/Desktop/db-implementation/src/Lexer.l"
+#line 48 "/cise/homes/sgaddam/db-implementation/src/Lexer.l"
 {yylval.actualChars = strdup(yytext);
   			return(Int); 
 		        }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 52 "/cise/homes/sandeep/Desktop/db-implementation/src/Lexer.l"
+#line 52 "/cise/homes/sgaddam/db-implementation/src/Lexer.l"
 {yylval.actualChars = strdup(yytext); 
   			return(Float);
 			}
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 56 "/cise/homes/sandeep/Desktop/db-implementation/src/Lexer.l"
+#line 56 "/cise/homes/sgaddam/db-implementation/src/Lexer.l"
 return(OR);
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 58 "/cise/homes/sandeep/Desktop/db-implementation/src/Lexer.l"
+#line 58 "/cise/homes/sgaddam/db-implementation/src/Lexer.l"
 return(AND);
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 60 "/cise/homes/sandeep/Desktop/db-implementation/src/Lexer.l"
+#line 60 "/cise/homes/sgaddam/db-implementation/src/Lexer.l"
 {/* take care of ' in a string */
 	 		if (yytext[yyleng - 2] == '\\') {
      				yymore();
@@ -845,7 +845,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 70 "/cise/homes/sandeep/Desktop/db-implementation/src/Lexer.l"
+#line 70 "/cise/homes/sgaddam/db-implementation/src/Lexer.l"
 {yylval.actualChars = strdup(yytext);
   			return(Name);
 			}     
@@ -853,22 +853,22 @@ YY_RULE_SETUP
 case 12:
 /* rule 12 can match eol */
 YY_RULE_SETUP
-#line 74 "/cise/homes/sandeep/Desktop/db-implementation/src/Lexer.l"
+#line 74 "/cise/homes/sgaddam/db-implementation/src/Lexer.l"
 lineno++;
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 76 "/cise/homes/sandeep/Desktop/db-implementation/src/Lexer.l"
+#line 76 "/cise/homes/sgaddam/db-implementation/src/Lexer.l"
 ;
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 78 "/cise/homes/sandeep/Desktop/db-implementation/src/Lexer.l"
+#line 78 "/cise/homes/sgaddam/db-implementation/src/Lexer.l"
 yyerror("LEX_ERROR: invalid character");
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 80 "/cise/homes/sandeep/Desktop/db-implementation/src/Lexer.l"
+#line 80 "/cise/homes/sgaddam/db-implementation/src/Lexer.l"
 ECHO;
 	YY_BREAK
 #line 875 "lex.yy.c"
@@ -1869,7 +1869,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 80 "/cise/homes/sandeep/Desktop/db-implementation/src/Lexer.l"
+#line 80 "/cise/homes/sgaddam/db-implementation/src/Lexer.l"
 
 
 

@@ -25,8 +25,8 @@ sampletest.out: libgtest.a
 	mv *.o $(BIN_DIR)
 
 
-test: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ.o Pipe.o y.tab.o lex.yy.o test.o
-	$(CC) -pthread -o test Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ.o Pipe.o y.tab.o lex.yy.o test.o -lfl
+test: Record.o Comparison.o ComparisonEngine.o Schema.o File.o GenericDBFile.o SortedDBFile.o HeapDBFile.o DBFile.o BigQ.o Pipe.o y.tab.o lex.yy.o test.o
+	$(CC) -pthread -o test Record.o Comparison.o ComparisonEngine.o Schema.o File.o GenericDBFile.o SortedDBFile.o HeapDBFile.o DBFile.o BigQ.o Pipe.o y.tab.o lex.yy.o test.o -lfl
 	mv *.o $(BIN_DIR)
 	mv test $(BIN_DIR)
 	
@@ -58,6 +58,15 @@ Pipe.o: $(SRC_DIR)/Pipe.cc
 BigQ.o: $(SRC_DIR)/BigQ.cc
 	$(CC) -g -c $(SRC_DIR)/BigQ.cc
 	
+GenericDBFile.o: $(SRC_DIR)/GenericDBFile.cc
+	$(CC) -g -c $(SRC_DIR)/GenericDBFile.cc
+
+HeapDBFile.o: $(SRC_DIR)/HeapDBFile.cc
+	$(CC) -g -c $(SRC_DIR)/HeapDBFile.cc
+
+SortedDBFile.o: $(SRC_DIR)/SortedDBFile.cc
+	$(CC) -g -c $(SRC_DIR)/SortedDBFile.cc
+
 DBFile.o: $(SRC_DIR)/DBFile.cc
 	$(CC) -g -c $(SRC_DIR)/DBFile.cc
 

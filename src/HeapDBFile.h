@@ -1,5 +1,5 @@
-#ifndef DBFILE_H
-#define DBFILE_H
+#ifndef HEAPDBFILE_H
+#define HEAPDBFILE_H
 
 #include "TwoWayList.h"
 #include "Record.h"
@@ -7,18 +7,23 @@
 #include "File.h"
 #include "Comparison.h"
 #include "ComparisonEngine.h"
-#include "HeapDBFile.h"
-#include "SortedDBFile.h"
+#include "GenericDBFile.h"
 
-class DBFile {
+class HeapDBFile : virtual public GenericDBFile{
 
 private:
-	GenericDBFile *gendbfile;
+    File *heapfile;
+    Page *write_page; //Record writes go into this page
+    Page *read_page;  //This page is only for reading
+    int cur_page;     //Current Page being read. 0 means no pages to read
+    bool dirty;       //If true, current page being read is dirty(Not yet written to disk). 
+    fType type;
+
 public:
     //Constructor
-	DBFile ();
+	HeapDBFile ();
     //Destructor
-    ~DBFile (); 
+    ~HeapDBFile (); 
     /*
      * Creates the file using fpath and file type can be heap, tree, sorted
      * Need to store the file information in metafile *.header
@@ -52,4 +57,5 @@ public:
 	
 };
 #endif
+
 
