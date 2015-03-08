@@ -76,6 +76,7 @@ int DBFile::GetNext (Record &fetchme, CNF &cnf, Record &literal) {
 }
 
 int DBFile:: GetPage (Page *putItHere, off_t whichPage) {
+	gendbfile->GetPage(putItHere, whichPage);
 }
 
 

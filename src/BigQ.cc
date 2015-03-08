@@ -217,12 +217,23 @@ void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe &outpipe){
 
 void *bigqthread (void *arg) {
 	PipeOrders *pipes = (PipeOrders *) arg;
+	
+	/*cout << "0 *bigqthread() &in:  " << pipes->inPipe << endl;
+	cout << "0 *bigqthread() &out: " << pipes->outPipe << endl;
+	cout << "0 *bigqthread() &sortorder: " << pipes->order << endl;
+	cout << "0 *bigqthread() runlen: " << pipes->runLength << endl;*/
+
 	Pipe &in = *(pipes->inPipe);
 	Pipe &out = *(pipes->outPipe);
 	OrderMaker *sortorder = pipes->order;
 	int runlen = pipes->runLength;
 	localOrder = sortorder;
 	int count = 0;
+
+	/*cout << "1 *bigqthread() &in:  " << &in << endl;
+	cout << "1 *bigqthread() &out: " << &out << endl;
+	cout << "1 *bigqthread() &sortorder: " << sortorder << endl;
+	cout << "1 *bigqthread() runlen: " << runlen << endl;*/
 
 	// read data from in pipe sort them into runlen pages
 	Record rec;
@@ -316,13 +327,19 @@ void *bigqthread (void *arg) {
 	
 }
 BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
-	PipeOrders pipes;
+	/*PipeOrders pipes;
 	pipes.inPipe  = &in;
 	pipes.outPipe = &out;
 	pipes.order = &sortorder;
-	pipes.runLength = runlen;
+	pipes.runLength = runlen;*/
+	PipeOrders pipes = {&in, &out, &sortorder,runlen};
+	/*cout << "BigQ() &in:  " << &in << endl;
+	cout << "BigQ() &out: " << &out << endl;
+	cout << "BigQ() &sortorder: " << &sortorder << endl;
+	cout << "BigQ() runlen: " << runlen << endl;*/
 	pthread_t thread1;
-	pthread_create (&thread1, NULL, bigqthread, (void *)&pipes);	
+	pthread_create (&thread1, NULL, bigqthread, (void *)&pipes);
+	pthread_join (thread1, NULL);	
 }
 
 BigQ::~BigQ () {
