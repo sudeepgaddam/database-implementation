@@ -13,7 +13,6 @@
 
 typedef enum {Read, Write} Mode;
 
-
 typedef struct SortInfo {
 	OrderMaker *myOrder;
 	int runLength;
@@ -29,9 +28,9 @@ private:
     bool dirty;       //If true, current page being read is dirty(Not yet written to disk). 
     fType type;
     Mode mode;
-    Pipe *in_pipe;
+   /* Pipe *in_pipe;
     Pipe *out_pipe;
-    BigQ *sortq;
+    BigQ *sortq; */
     int runLength;
     OrderMaker *myOrder; 
 
@@ -39,7 +38,15 @@ private:
      */
     void DestroyPipeQ ();
     void BuildPipeQ ();
+
+	
+
 public:
+
+	Pipe *in_pipe;
+    	Pipe *out_pipe;
+    	BigQ *sortq;
+
     //Constructor
 	SortedDBFile ();
     //Destructor
@@ -79,7 +86,9 @@ public:
 
 	//page level read and wirte
 	int GetPage (Page *putItHere, off_t whichPage);
-	//void AddPage(Page *srcPage);
+	//void AddPage(Page *srcPage)
 	
 };
+
+void* producer (void *arg);
 #endif

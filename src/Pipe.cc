@@ -8,6 +8,8 @@ Pipe :: Pipe (int bufferSize) {
 	// set up the mutex assoicated with the pipe
 	pthread_mutex_init (&pipeMutex, NULL);
 
+	cout << "Pipe() &pipeMutex: " << &pipeMutex << endl;
+
 	// set up the condition variables associated with the pipe
 	pthread_cond_init (&producerVar, NULL);
 	pthread_cond_init (&consumerVar, NULL);
@@ -40,9 +42,13 @@ Pipe :: ~Pipe () {
 
 
 void Pipe :: Insert (Record *insertMe) {
-
+	
+	cout<< "Pipe.Insert() Start!" << endl;
+	cout << &pipeMutex << endl;
 	// first, get a mutex on the pipeline
 	pthread_mutex_lock (&pipeMutex);
+
+	cout<< "Pipe.Insert() got mutex!" << endl;
 
 	// next, see if there is space in the pipe for more data; if
 	// there is, then do the insertion
@@ -65,11 +71,14 @@ void Pipe :: Insert (Record *insertMe) {
 
 	// done!
 	pthread_mutex_unlock (&pipeMutex);
+	cout<< "Pipe.Insert() Success!" << endl;
 }
 
 
 int Pipe :: Remove (Record *removeMe) {
 	 
+	cout<< "Pipe.Remove() Start!" << endl;
+	cout << &pipeMutex << endl;
 	// first, get a mutex on the pipeline
 	pthread_mutex_lock (&pipeMutex);
 
@@ -113,12 +122,14 @@ int Pipe :: Remove (Record *removeMe) {
 	
 	// done!
 	pthread_mutex_unlock (&pipeMutex);
+	cout<< "Pipe.Remove() Success!" << endl;
 	return 1;
 }
 
 
 void Pipe :: ShutDown () {
 
+	cout <<"Pipe.ShutDown() Start!" << endl;
 	// first, get a mutex on the pipeline
         pthread_mutex_lock (&pipeMutex);
 
@@ -130,5 +141,6 @@ void Pipe :: ShutDown () {
 
 	// unlock the mutex
 	pthread_mutex_unlock (&pipeMutex);
+	cout<< "Pipe.ShutDown() Success!" << endl;
 	
 }

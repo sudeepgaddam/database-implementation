@@ -8,8 +8,56 @@
 #include "SortedDBFile.h"
 #include "Defs.h"
 #include <sstream>
+#include "HeapDBFile.h"
+
+bool firstTime = true; //TODO
+Pipe* ti_Pipe;
+Pipe* to_Pipe;
+
+typedef struct {
+	Pipe *pipe;
+	Record *rec;
+}pipeutil;
+
+//USEFUL example
+/*void* call_sockethandler(void* nw) {
+    Network* network = static_cast<Network*>(nw);
+
+    void* result = network->SocketHandler(somearg);
+
+    // do something w/ result
+
+    return nullptr;
+}
+
+Network nw; // this can't go out of scope though
+pthread_create(&thread_id, 0, call_sockethandler, &nw); */
 
 
+void* producer (void *arg) {
+
+	pipeutil *t = (pipeutil *) arg;
+
+	Record *temp = (Record *) t->rec;
+	
+	//Pipe *p = new Pipe(100);
+	ti_Pipe = t->pipe;
+	ti_Pipe->Insert (temp);
+	ti_Pipe->ShutDown ();
+	cout << " producer: inserted record into the pipe\n";
+}
+
+void* consumer (void *arg) {
+
+	pipeutil *t = (pipeutil *) arg;
+
+	Record *temp = (Record *) t->rec;
+	
+	to_Pipe = t->pipe;
+	to_Pipe->Remove (temp);
+	to_Pipe->ShutDown ();
+	cout << " consumer: removed record from the pipe\n";
+}
 
 SortedDBFile::~SortedDBFile(){
 	cout << "Sorted DBFile DESTRUCTOR" << endl;
@@ -37,7 +85,9 @@ void SortedDBFile::DestroyPipeQ() {
 void SortedDBFile::BuildPipeQ() {
     in_pipe = new Pipe(100);
     out_pipe = new Pipe(100);
+
     sortq = new BigQ(*in_pipe, *out_pipe, *myOrder, runLength);
+	cout << "SortedDBFile.BuildPipeQ() Success!" << endl;
 }
 int SortedDBFile::GetFromMetaData (ifstream &ifs) {
 	string line;
@@ -56,7 +106,10 @@ int SortedDBFile::GetFromMetaData (ifstream &ifs) {
  */
 int SortedDBFile::Create (char *f_path, fType f_type, void *startup) {
 	//Make the mode as write
-    mode = Write;
+    	//mode = Write; //TODO
+
+	mode = Read; //while Adding record, we are taking care of initial Write!
+
     SortInfo *sortinfo;
     cout << "Sorted DBFile Create called" << f_path<<endl;
     char tbl_path[100];
@@ -75,23 +128,60 @@ int SortedDBFile::Create (char *f_path, fType f_type, void *startup) {
 	//Write myOrder to metadata file
     myOrder->FilePrint(out);
 	//Setup Pipes and BigQ
-    BuildPipeQ();
+    //BuildPipeQ();
+
+	//in_pipe = new Pipe(100); //TODO
+	//out_pipe = new Pipe(100);
+	//in_pipe->Insert(NULL);
+	//out_pipe->Insert(NULL);
+
     heapfile->Open(0, f_path);
     return 1;
 }
-    
+
+
 /* If in write mode, write to in_pipe. If we wrote PAGESIZE*runLength into 
  * in_pipe, Time to get sorted records from out_pipe and write to DBFile
  * If in read mode, just change to write mode, Instantiate BigQ and write to in_pipe
  */
 void SortedDBFile::Add (Record &rec) {
+
+	//we can remove this if we constrain mode=Read initially
+    	if(firstTime){
+		firstTime = false;
+		in_pipe = new Pipe(100); //TODO
+		out_pipe = new Pipe(100);
+		//BuildPipeQ();
+	}
+
+    cout << "SortedDBFile.Add() Start! mode = " << mode << endl;
+    //rec.Print();
+    //cout << "Print mode == Read " << (mode == Read) << endl;
+
     if (mode == Write) {
+	cout << "SortedDBFile.Add() NextRecordInsertion Success!" << endl;
 	in_pipe->Insert(&rec);
     } else if (mode == Read) {
 	//sortq would be null; Instantiate it and the pipes
-	mode = Write;
-	BuildPipeQ();
+	cout <<"SortedDBFile.Add() FirstRecordInsertion Start!" << endl;
+	
+	
+	//pthread_t thread1;
+	//pipeutil putil1 = {in_pipe, &rec};
+	//pthread_create (&thread1, NULL, producer, (void *)&putil1);	
+	
+
+	//pthread_t thread2;
+	//pipeutil putil2 = {out_pipe, &rec};
+	//pthread_create (&thread2, NULL, consumer, (void *)&putil2);	
+	//pthread_join (thread1, NULL);
+	//pthread_join (thread2, NULL);
+
 	in_pipe->Insert(&rec);
+	//in_pipe->ShutDown();
+	//BuildPipeQ();
+	mode = Write;
+	cout <<"SortedDBFile.Add() FirstRecordInsertion Success!" << endl;
     }     
     /*int ret;
     ret = write_page->Append(&rec); 
@@ -231,3 +321,4 @@ int SortedDBFile:: GetPage (Page *putItHere, off_t whichPage) {
 	}
 	return 0; //whichPage out of range
 }
+

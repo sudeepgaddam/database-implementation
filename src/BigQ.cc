@@ -200,6 +200,15 @@ void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe &outpipe){
 	}
 	cout << "***** Success!! Phase Two Ends " << endl;
 
+	cout << "Print infile records -- should not be in sorted order" << endl;
+	infile->MoveFirst();
+	Record inrec;
+	int inreccount = 0;
+	while (infile->GetNext (inrec) == 1) {
+		inrec.Print();
+		inreccount++;
+	}
+	cout << "End of infile!! contains-> " << inreccount << " records" << endl;
 	/*cout << "Print outfile records -- should be in sorted order" << endl;
 	outfile->MoveFirst();
 	Record outrec;
@@ -285,8 +294,8 @@ void *bigqthread (void *arg) {
 		}
 	}
 	
-	//cout << "finished reading: recs - " << recordcount << endl;
-	//cout << "finished reading: runs - " << runcount << endl;
+	cout << "finished reading: recs - " << recordcount << endl;
+	cout << "finished reading: runs - " << runcount << endl;
 				
 	int vsize = recordcount;//vrec.size();
 	if(vsize >0) { 
