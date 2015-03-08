@@ -83,8 +83,8 @@ void SortedDBFile::DestroyPipeQ() {
 /* Called during mode change from read to write
  */
 void SortedDBFile::BuildPipeQ() {
-    in_pipe = new Pipe(100);
-    out_pipe = new Pipe(100);
+    //in_pipe = new Pipe(100);
+    //out_pipe = new Pipe(100);
 
     sortq = new BigQ(*in_pipe, *out_pipe, *myOrder, runLength);
 	cout << "SortedDBFile.BuildPipeQ() Success!" << endl;
@@ -151,37 +151,17 @@ void SortedDBFile::Add (Record &rec) {
 		firstTime = false;
 		in_pipe = new Pipe(100); //TODO
 		out_pipe = new Pipe(100);
-		//BuildPipeQ();
+		sortq = new BigQ(*in_pipe, *out_pipe, *myOrder, runLength);
 	}
 
     cout << "SortedDBFile.Add() Start! mode = " << mode << endl;
-    //rec.Print();
-    //cout << "Print mode == Read " << (mode == Read) << endl;
 
     if (mode == Write) {
-	cout << "SortedDBFile.Add() NextRecordInsertion Success!" << endl;
 	in_pipe->Insert(&rec);
     } else if (mode == Read) {
 	//sortq would be null; Instantiate it and the pipes
-	cout <<"SortedDBFile.Add() FirstRecordInsertion Start!" << endl;
-	
-	
-	//pthread_t thread1;
-	//pipeutil putil1 = {in_pipe, &rec};
-	//pthread_create (&thread1, NULL, producer, (void *)&putil1);	
-	
-
-	//pthread_t thread2;
-	//pipeutil putil2 = {out_pipe, &rec};
-	//pthread_create (&thread2, NULL, consumer, (void *)&putil2);	
-	//pthread_join (thread1, NULL);
-	//pthread_join (thread2, NULL);
-
 	in_pipe->Insert(&rec);
-	//in_pipe->ShutDown();
-	//BuildPipeQ();
 	mode = Write;
-	cout <<"SortedDBFile.Add() FirstRecordInsertion Success!" << endl;
     }     
     /*int ret;
     ret = write_page->Append(&rec); 
@@ -321,4 +301,49 @@ int SortedDBFile:: GetPage (Page *putItHere, off_t whichPage) {
 	}
 	return 0; //whichPage out of range
 }
+
+
+/*
+
+Psuedo-code to implement
+
+Add(){
+	if(mode=w){
+		BigQ.Insert();
+	}
+	if(mode=r){
+		check that BigQ is Empty! //BigQ should be empty - check is just to ensure that
+		BigQ.Create();
+		inpipe.Add(rec);
+		mode=w;
+	}
+}
+
+Load(){
+	iteratively
+		Add();
+}
+
+MoveFirst, Close, GetNext:
+	if(mode=w){
+		merge(BigQ, sorted_data);
+		mode = r;
+	}
+	if(mode=r){
+		//respective functionality
+	}
+
+merge(BigQ, sorted_data){
+	while(either ptr=null){
+		*ptr1 = outpipe[i];
+		*ptr2 = sorted_data.GetFirst(rec);
+		compareRecords(*ptr1, *ptr2);
+		newFile.Insert(smallestRecord);
+		increment corresponding ptr;
+	}
+	while(increment non-null ptr)
+		newFile.Insert(ptr);
+}
+
+*/
 

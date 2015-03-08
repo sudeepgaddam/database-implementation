@@ -348,7 +348,7 @@ BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
 	cout << "BigQ() runlen: " << runlen << endl;*/
 	pthread_t thread1;
 	pthread_create (&thread1, NULL, bigqthread, (void *)&pipes);
-	pthread_join (thread1, NULL);	
+	//pthread_join (thread1, NULL);	
 }
 
 BigQ::~BigQ () {
