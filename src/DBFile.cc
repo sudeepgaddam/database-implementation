@@ -68,6 +68,7 @@ int DBFile::Close () {
 	gendbfile->Close();
 }
 int DBFile::GetNext (Record &fetchme) {
+	cout << "DBFile.GetNext() Start!" << endl;
 	gendbfile->GetNext(fetchme);
 }
 

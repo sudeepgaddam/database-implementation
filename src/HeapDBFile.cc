@@ -91,15 +91,17 @@ int HeapDBFile::Close () {
  * and get first record
  */
 int HeapDBFile::GetNext (Record &fetchme) {
+	cout << "HeapDBFile.GetNext Start!" << endl;
 	int ret = 0;
-	#ifdef DBFile_Debug
+	//#ifdef DBFile_Debug
 	cout << "heapfile pages: " << heapfile->GetLength() << endl;
-	#endif
+	cout << "curr_page: " << cur_page << endl;
+	//#endif
 	if ( cur_page == 0) {
        		 if(heapfile->GetLength() > 0){
-	#ifdef DBFile_Debug
+	//#ifdef DBFile_Debug
 			cout << "Getting Page " << cur_page <<endl;
-	#endif
+	//#endif
 		        cur_page+=1;
             		read_page->EmptyItOut();
 			heapfile->GetPage(read_page, cur_page-1);
@@ -120,18 +122,20 @@ int HeapDBFile::GetNext (Record &fetchme) {
  			}
 		 }
     	}
-	#ifdef DBFile_Debug
+	//#ifdef DBFile_Debug
 		cout << "got page? cur_page: " << cur_page << endl;	
 		cout << "No of recs in cur_page: " << read_page->GetNumRecs() << endl;
-        #endif
+        //#endif
 
     	ret = read_page->GetCurrent(&fetchme);
+	cout << "ret: " << ret << endl;
     	if (ret == 0) {
 		/*
 		 * If curpage is 1, load next page from file only if File length is 3 because 
 		 * there is an empty page 
 		 */
         	if (cur_page < (heapfile->GetLength() -1)) {
+			cout << "0. condition" << endl;
             		read_page->EmptyItOut();
 			heapfile->GetPage(read_page, cur_page);
             		read_page->MoveToStart();
@@ -139,6 +143,7 @@ int HeapDBFile::GetNext (Record &fetchme) {
 		        cur_page+=1;
 	    		ret = 1;
 		} else if (write_page->GetNumRecs() > 0) {
+				cout << "1. condition" << endl;
                             heapfile->AddPage(write_page, cur_page);
                             write_page->EmptyItOut();
             		    read_page->EmptyItOut();
@@ -149,6 +154,8 @@ int HeapDBFile::GetNext (Record &fetchme) {
 			    ret = 1;
 			//Copy write page to read page;Mark dirty
 	    		//we have reached end in DBFile, if we have some info in write_page, getRecord from it   
+		}else{
+						cout << "2. condition" << endl;
 		}
     	}
    	return ret;   
@@ -176,4 +183,8 @@ int HeapDBFile:: GetPage (Page *putItHere, off_t whichPage) {
 		return heapfile->GetPage(putItHere, whichPage);
 	}
 	return 0; //whichPage out of range
+}
+
+bool HeapDBFile::isEmpty(){
+	return (heapfile->GetLength() == 0 && write_page->GetNumRecs() == 0 && read_page->GetNumRecs() == 0);
 }

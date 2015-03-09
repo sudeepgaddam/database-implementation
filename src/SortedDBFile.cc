@@ -9,10 +9,7 @@
 #include "Defs.h"
 #include <sstream>
 
-
-bool firstTime = true; //TODO
-
-
+ComparisonEngine comparisonEng;
 
 SortedDBFile::~SortedDBFile(){
 	cout << "Sorted DBFile DESTRUCTOR" << endl;
@@ -28,6 +25,8 @@ SortedDBFile::SortedDBFile () {
     heapfile = new File();
     write_page   = new Page();
     myOrder = new OrderMaker();
+
+	sortedheapfile = new HeapDBFile();
 
 }
 
@@ -55,7 +54,7 @@ int SortedDBFile::Create (char *f_path, fType f_type, void *startup) {
 	mode = Read; //while Adding record, we are taking care of initial Write!
 
 	SortInfo *sortinfo;
-	cout << "Sorted DBFile Create called" << f_path<<endl;
+	cout << "Sorted DBFile Create called: " << f_path<<endl;
 	char tbl_path[100];
 	sprintf (tbl_path, "%s.meta", f_path);
 	ofstream out(tbl_path);
@@ -68,13 +67,17 @@ int SortedDBFile::Create (char *f_path, fType f_type, void *startup) {
 	//Copy myOrder
 	*myOrder = *(sortinfo->myOrder);
 	out << runLength << endl;
-	myOrder->Print();
+	//myOrder->Print();
 	//Write myOrder to metadata file
 	myOrder->FilePrint(out);
 	//Setup Pipes and BigQ
 	//BuildPipeQ();
 
 	heapfile->Open(0, f_path);
+
+	sortedheapfile->Create("sortedheapfile.bin", heap, NULL);
+	sortedheapfile->Open("sortedheapfile.bin");
+	
 	return 1;
 }
 
@@ -115,13 +118,14 @@ int SortedDBFile::Open (char *f_path) {
 	//Write myOrder ordermaker and runlength from meta data file
     GetFromMetaData(in);
     heapfile->Open(1, f_path);
+
 }
 
 void SortedDBFile::MoveFirst () {
 	if (mode == Write) {
 		SwitchMode();
 	} else if (mode == Read) {
-		//return sortedheapfile->MoveFirst();
+		return sortedheapfile->MoveFirst();
 	}
 }
 
@@ -129,7 +133,7 @@ int SortedDBFile::Close () {
     if (mode == Write) {
 		SwitchMode();
 	} else if (mode == Read) {
-		//return sortedheapfile->Close();
+		return sortedheapfile->Close();
 	}
 }
 
@@ -140,10 +144,13 @@ int SortedDBFile::Close () {
  */
 int SortedDBFile::GetNext (Record &fetchme) {
 	//read data from outpipe and store it in sortedheapfile!
+	cout << "GetNext mode= " << mode << endl;
 	if (mode == Write) {
+		cout << "GetNext Write!" << endl;
 		SwitchMode();
 	} else if (mode == Read) {
-		//return sortedheapfile->GetNext(fetchme);
+		cout << "GetNext Read!" << endl;
+		return sortedheapfile->GetNext(fetchme);
 	}
 }
 
@@ -171,9 +178,73 @@ int SortedDBFile:: GetPage (Page *putItHere, off_t whichPage) {
 	return 0; //whichPage out of range
 }
 
-/* Merges records from heapfile with BigQ.outPipe
+
+/* Merges records from sortedheapfile with BigQ.outPipe and store in tempFile;
 */
-//merge(){}
+void SortedDBFile::Merge(){
+
+	//HeapDBFile *tempFile = new HeapDBFile();
+	//tempFile.Create();
+	//tempFile.Open();
+
+	cout << "Merge() Start!" << endl;
+
+	sortedheapfile->MoveFirst();
+	bool fileEmpty = sortedheapfile->isEmpty();
+	cout <<"is file empty?: " << fileEmpty << endl;
+	Record filerec;
+	Record piperec;
+	int fileStatus;
+	int pipeStatus;
+
+	bool one_ends = false;
+
+	if(!fileEmpty){
+
+		while(true){
+	
+			cout << "Merge() Iterate!" << endl;
+
+			fileStatus = sortedheapfile->GetNext(filerec);
+			pipeStatus = out->Remove(&piperec);
+
+			cout << "fileStatus: " << fileStatus << endl;
+			cout << "pipeStatus: " << pipeStatus << endl;
+
+			one_ends = (fileStatus == 0) || (pipeStatus == 0);
+
+			if(one_ends)
+				break;
+
+			int compStatus = comparisonEng.Compare(&filerec, &piperec, myOrder);
+			if(compStatus <0){
+				//tempFile.Add(filerec);
+				cout << "File Rec Smaller: " << endl;
+				filerec.Print();
+			}else{
+				cout << "Pipe Rec Smaller: " << endl;
+				//tempFile.Add(piperec);
+				piperec.Print();
+			}
+		}
+		if(fileStatus == 0){
+		
+		}else if(pipeStatus == 0){
+		
+		}
+
+	}else{
+		cout << "0. Dump outpipe into tempFile" << endl;
+		while(out->Remove(&piperec)) {
+			//tempFile.Add(piperec);
+			cout << "1. Dump outpipe into tempFile" << endl;
+			piperec.Print();
+		}
+	}
+	
+	cout << "Merge() Success!" << endl;
+
+}
 
 /*
 
@@ -242,6 +313,7 @@ void SortedDBFile::SwitchMode() {
 		mode = Read;
 		in->ShutDown();
 		//Merge_with_q();
+		Merge();
 		delete util;
 		delete in;
 		delete out;

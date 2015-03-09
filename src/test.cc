@@ -85,6 +85,8 @@ void test2 () {
 	dbfile.MoveFirst ();
 
 	Record temp;
+	
+	cout << "Before Scanning" << endl;
 
 	int cnt = 0;
 	cerr << "\t";

@@ -54,6 +54,8 @@ public:
 	//page level read and wirte
 	int GetPage (Page *putItHere, off_t whichPage);
 	//void AddPage(Page *srcPage);
+
+	bool isEmpty();
 	
 };
 #endif

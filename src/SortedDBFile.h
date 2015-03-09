@@ -31,6 +31,8 @@ private:
     bool dirty;       //If true, current page being read is dirty(Not yet written to disk). 
     fType type;
 
+	HeapDBFile* sortedheapfile;
+
 	Mode mode;
 
 	Pipe *in;
@@ -86,6 +88,8 @@ public:
 	//void AddPage(Page *srcPage)
 
 	void SwitchMode();
+
+	void Merge();
 	
 };
 
