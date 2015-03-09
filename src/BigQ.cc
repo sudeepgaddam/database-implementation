@@ -41,7 +41,7 @@ struct RecordInfo{
 };
 
 
-void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe &outpipe){
+void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe *outpipe){
 	
 
 	int num_buffers = num_runs; // num of runs	
@@ -117,7 +117,7 @@ void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe &outpipe){
 		if(outbuffersize==PAGE_SIZE){ 
 			for(int i=0; i<outbuffer.size();i++){
 				//outfile->Add(outbuffer[i]);
-				outpipe.Insert(&outbuffer[i]);
+				outpipe->Insert(&outbuffer[i]);
 			}
 			outbuffersize = 0;
 			outbuffer.clear();
@@ -154,7 +154,7 @@ void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe &outpipe){
 			//flush output buffer records even if it is not full - since we are done with all runs
 			for(int i=0; i<outbuffer.size();i++){
 				//outfile->Add(outbuffer[i]);
-				outpipe.Insert(&outbuffer[i]);
+				outpipe->Insert(&outbuffer[i]);
 			}
 			outbuffer.clear();
 		}
@@ -169,7 +169,7 @@ void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe &outpipe){
 		int bufferindex = tempInfo.bufferId;
 		//tempInfo.rec->Print(schema);
 		//outfile->Add(*tempInfo.rec);
-		outpipe.Insert(tempInfo.rec);
+		outpipe->Insert(tempInfo.rec);
 		//flush all buffer records into outfile		
 		while(true){
 			tempInfo.rec = new Record();
@@ -177,7 +177,7 @@ void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe &outpipe){
 				//cout << "Add buffer record into file" << endl;
 				//tempInfo.rec->Print(schema);
 				//outfile->Add(*tempInfo.rec);
-				outpipe.Insert(tempInfo.rec);
+				outpipe->Insert(tempInfo.rec);
 			}else{
 				//cout << "End of last buffer!!" << endl;
 				break;
@@ -192,7 +192,7 @@ void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe &outpipe){
 			while(buffers[bufferindex].GetFirst(rec)){   //replaced GetCurrent
 				//rec->Print(schema);
 				//outfile->Add(*rec);
-				outpipe.Insert(rec);
+				outpipe->Insert(rec);
 			}
 			whichpages[bufferindex]++;
 		}
@@ -227,22 +227,27 @@ void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe &outpipe){
 void *bigqthread (void *arg) {
 	PipeOrders *pipes = (PipeOrders *) arg;
 	
-	/*cout << "0 *bigqthread() &in:  " << pipes->inPipe << endl;
-	cout << "0 *bigqthread() &out: " << pipes->outPipe << endl;
-	cout << "0 *bigqthread() &sortorder: " << pipes->order << endl;
-	cout << "0 *bigqthread() runlen: " << pipes->runLength << endl;*/
+	cout << "0 *bigqthread() &in:  " << ((PipeOrders *) arg)->inPipe << endl;
+	cout << "0 *bigqthread() &out: " << ((PipeOrders *) arg)->outPipe << endl;
+	cout << "0 *bigqthread() &sortorder: " << ((PipeOrders *) arg)->order << endl;
+	cout << "0 *bigqthread() runlen: " << pipes->runLength << endl;
 
-	Pipe &in = *(pipes->inPipe);
-	Pipe &out = *(pipes->outPipe);
+	Pipe *in = pipes->inPipe;
+	Pipe *out = pipes->outPipe;
 	OrderMaker *sortorder = pipes->order;
 	int runlen = pipes->runLength;
+
+	/*Pipe &in = *(pipes->inPipe);
+	Pipe &out = *(pipes->outPipe);
+	OrderMaker *sortorder = pipes->order;
+	int runlen = pipes->runLength;*/
 	localOrder = sortorder;
 	int count = 0;
 
-	/*cout << "1 *bigqthread() &in:  " << &in << endl;
-	cout << "1 *bigqthread() &out: " << &out << endl;
+	cout << "1 *bigqthread() &in:  " << in << endl;
+	cout << "1 *bigqthread() &out: " << out << endl;
 	cout << "1 *bigqthread() &sortorder: " << sortorder << endl;
-	cout << "1 *bigqthread() runlen: " << runlen << endl;*/
+	cout << "1 *bigqthread() runlen: " << runlen << endl;
 
 	// read data from in pipe sort them into runlen pages
 	Record rec;
@@ -269,7 +274,7 @@ void *bigqthread (void *arg) {
 	cout << "***** Start reading from in-pipe" << endl;
 	int i = 0;
 	
-	while(in.Remove(&rec)){
+	while(in->Remove(&rec)){
 		
 		recordcount++;
 		int recsize = rec.GetSize();
@@ -328,24 +333,39 @@ void *bigqthread (void *arg) {
  	// into the out pipe
 
     // finally shut down the out pipe
-	out.ShutDown ();
+	out->ShutDown ();
 
 	cout << "=============== end  TPMMS ===============" << endl;
 	cout << endl;
 	cout << endl;
 	
 }
-BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
+BigQ :: BigQ (Pipe *in, Pipe *out, OrderMaker *sortorder, int runlen) {
 	/*PipeOrders pipes;
 	pipes.inPipe  = &in;
 	pipes.outPipe = &out;
 	pipes.order = &sortorder;
 	pipes.runLength = runlen;*/
-	PipeOrders pipes = {&in, &out, &sortorder,runlen};
-	/*cout << "BigQ() &in:  " << &in << endl;
-	cout << "BigQ() &out: " << &out << endl;
-	cout << "BigQ() &sortorder: " << &sortorder << endl;
-	cout << "BigQ() runlen: " << runlen << endl;*/
+
+	//cout << "0. BigQ c'tor: &in_pipe: " << in << endl;
+	//cout << "0. BigQ c'tor: &out_pipe: " << out << endl;
+	//cout << "0. BigQ c'tor: &myOrder: " << sortorder << endl;
+	cout << "0. BigQ c'tor: runlen: " << runlen << endl;
+
+	cout << "1. BigQ c'tor: &in_pipe: " << in << endl;
+	cout << "1. BigQ c'tor: &out_pipe: " << out << endl;
+	cout << "1. BigQ c'tor: &myOrder: " << sortorder << endl;
+
+	//in.Insert(NULL);
+	//PipeOrders pipes = {&in, &out, &sortorder,runlen};
+
+	PipeOrders pipes = {in, out, sortorder,runlen};
+
+
+	cout << "2. BigQ() &in:  " << pipes.inPipe << endl;
+	cout << "2. BigQ() &out: " << pipes.outPipe << endl;
+	cout << "2. BigQ() &sortorder: " << pipes.order << endl;
+	cout << "2. BigQ() runlen: " << pipes.runLength << endl;
 	pthread_t thread1;
 	pthread_create (&thread1, NULL, bigqthread, (void *)&pipes);
 	//pthread_join (thread1, NULL);	
