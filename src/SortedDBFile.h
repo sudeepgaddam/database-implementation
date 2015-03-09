@@ -14,84 +14,55 @@
 
 #define PIPE_BUFFER 100
 
-typedef enum {Read, Write} Mode;
+typedef enum {reading, writing} file_mode;
 
 typedef struct SortInfo {
-	OrderMaker *myOrder;
-	int runLength;
-}SortInfoDef; 
+ OrderMaker *myOrder;
+ int runLength;
+} Sort_Info;
 
 class SortedDBFile : virtual public GenericDBFile {
 
+
 private:
-    File *heapfile;
-    Page *write_page; //Record writes go into this page
-    Page *read_page;  //This page is only for reading
-    int cur_page;     //Current Page being read. 0 means no pages to read
-    bool dirty;       //If true, current page being read is dirty(Not yet written to disk). 
-    fType type;
-
-	HeapDBFile* sortedheapfile;
-
-	Mode mode;
-
-	Pipe *in;
-    	Pipe *out;
-    	OrderMaker *myOrder;
-	int runLength;
-
+	char* fpath;
+	File data_file;
+	File temp_data_file;
+	ofstream metadata_file;
+	Page buffer_page;
+	Page temp_buffer_page;
+	off_t cur_page;
+	off_t temp_buffer_ptr;
+	OrderMaker* sort_info;
+	Pipe* in;
+	Pipe* out;
+	file_mode mode;
+	//BigQ b_queue;
+	int runlen;
+	//int count=0;
+	int search_done;
 	bigq_util* util;
 	pthread_t thread1;
-	
 
 public:
-
-    //Constructor
 	SortedDBFile ();
-    //Destructor
-    ~SortedDBFile (); 
-    /*
-     * Creates the file using fpath and file type can be heap, tree, sorted
-     * Need to store the file information in metafile *.header
-     * @return 1 : success
-     *         0 : error
-     */
+	~SortedDBFile ();
 	int Create (char *fpath, fType file_type, void *startup);
-    /*
-     * Open the file given by fpath 
-     * @return 1 : success
-     *         0 : error
-     */
 	int Open (char *fpath);
-    /*
-     * close the opened file. 
-     * @return 1 : success
-     *         0 : error
-     */
 	int Close ();
-
-	void Load (Schema &myschema, char *loadpath);
-
+	void Load (Schema &f_schema, char *loadpath);
 	void MoveFirst ();
 	void Add (Record &addme);
 	int GetNext (Record &fetchme);
 	int GetNext (Record &fetchme, CNF &cnf, Record &literal);
-	/* Given an out stream reference to meta datafile
-	 * Get ordermaker and runlength
-     	 * @return 1 : success
-     	 *         0 : error
-     	 */
-	int GetFromMetaData (ifstream &ifs);
-
-	//page level read and wirte
-	int GetPage (Page *putItHere, off_t whichPage);
-	//void AddPage(Page *srcPage)
-
 	void SwitchMode();
-
-	void Merge();
-	
+	//void RunBigQ(bigq_util*);
+	void Merge_with_q();
+	void Add_New_File(Record &addme);
+	int GetNext_File(Record &fetchme);
+	int GetFirst_Match(Record &fetchme, Record &literal, CNF &cnf, OrderMaker &search_order,
+			OrderMaker &literal_order);
+	int GetNext_NO_BS(Record &fetchme, CNF &cnf, Record &literal);
+	int GetNext_With_BS(Record &fetchme, CNF &cnf, Record &literal,OrderMaker &order,OrderMaker &literal_order);
 };
-
-void* producer (void *arg);
 #endif

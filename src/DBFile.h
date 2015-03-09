@@ -14,6 +14,7 @@ class DBFile {
 
 private:
 	GenericDBFile *gendbfile;
+	fType file_type;
 public:
     //Constructor
 	DBFile ();

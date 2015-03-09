@@ -654,4 +654,28 @@ void CNF :: GrowFromParseTree (struct AndList *parseTree, Schema *mySchema,
 	remove("hkljdfgkSDFSDF");
 }
 
+int CNF::HasSimpleEqualityCheck(int attribute) {
+	int literalIndex;
+	for (int i = 0; i < numAnds; i++) {
+        literalIndex = orList[i][0].IsEqualityCheck(attribute);
+		if ( (orLens[i] == 1) && (literalIndex != -1) ) {
+			return literalIndex;
+		}
+	}
+	return -1;
+}
+
+int Comparison::IsEqualityCheck(int attribute)
+{
+	if (op == Equals) {
+		if (whichAtt1 == attribute) {
+			return whichAtt2;
+		} else {
+			return -1;
+		}
+	} else {
+		return -1;
+	}
+}
+
 

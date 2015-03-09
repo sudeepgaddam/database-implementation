@@ -9,8 +9,8 @@
 using namespace std;
 
 typedef struct {
-	Pipe *inpipe;
-	Pipe *outpipe;
+	Pipe *in;
+	Pipe *out;
 	OrderMaker* sort_order;
 	int run_len;
 } bigq_util;
