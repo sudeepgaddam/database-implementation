@@ -224,33 +224,9 @@ void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe *outpipe){
 }
 
 
-void *bigqthread (void *args) {
+BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
 
-	BigQ *bq=(BigQ *)args;
-
-	//PipeOrders *pipes = (PipeOrders *) arg;
-	
-	cout << "0 *bigqthread() &in:  " << bq->inPipe << endl;
-	cout << "0 *bigqthread() &out: " << bq->outPipe << endl;
-	cout << "0 *bigqthread() &sortorder: " << bq->order << endl;
-	cout << "0 *bigqthread() runlen: " << bq->runLength << endl;
-
-	Pipe *in = bq->inPipe;
-	Pipe *out = bq->outPipe;
-	OrderMaker *sortorder = bq->order;
-	int runlen = bq->runLength;
-
-	/*Pipe &in = *(pipes->inPipe);
-	Pipe &out = *(pipes->outPipe);
-	OrderMaker *sortorder = pipes->order;
-	int runlen = pipes->runLength;*/
-	localOrder = sortorder;
 	int count = 0;
-
-	cout << "1 *bigqthread() &in:  " << in << endl;
-	cout << "1 *bigqthread() &out: " << out << endl;
-	cout << "1 *bigqthread() &sortorder: " << sortorder << endl;
-	cout << "1 *bigqthread() runlen: " << runlen << endl;
 
 	// read data from in pipe sort them into runlen pages
 	Record rec;
@@ -277,7 +253,7 @@ void *bigqthread (void *args) {
 	cout << "***** Start reading from in-pipe" << endl;
 	int i = 0;
 	
-	while(in->Remove(&rec)){
+	while(in.Remove(&rec)){
 		
 		recordcount++;
 		int recsize = rec.GetSize();
@@ -329,67 +305,19 @@ void *bigqthread (void *args) {
 	cout << "***** Success!! Phase one ends with runs=qsortcount: " << runcount << endl;
 	cout << "***** Infile Records: " << count << endl;
 
-	phasetwo(runcount, runlen, &tempFile, out);
+	phasetwo(runcount, runlen, &tempFile, &out);
 	
 
 	// construct priority queue over sorted runs and dump sorted data 
  	// into the out pipe
 
-    // finally shut down the out pipe
-	out->ShutDown ();
+    	// finally shut down the out pipe
+	out.ShutDown ();
 
 	cout << "=============== end  TPMMS ===============" << endl;
 	cout << endl;
 	cout << endl;
 	
-}
-/*BigQ :: BigQ (Pipe *in, Pipe *out, OrderMaker *sortorder, int runlen) {
-	/*PipeOrders pipes;
-	pipes.inPipe  = &in;
-	pipes.outPipe = &out;
-	pipes.order = &sortorder;
-	pipes.runLength = runlen;*
-
-	//cout << "0. BigQ c'tor: &in_pipe: " << in << endl;
-	//cout << "0. BigQ c'tor: &out_pipe: " << out << endl;
-	//cout << "0. BigQ c'tor: &myOrder: " << sortorder << endl;
-	cout << "0. BigQ c'tor: runlen: " << runlen << endl;
-
-	cout << "1. BigQ c'tor: &in_pipe: " << in << endl;
-	cout << "1. BigQ c'tor: &out_pipe: " << out << endl;
-	cout << "1. BigQ c'tor: &myOrder: " << sortorder << endl;
-
-	//in.Insert(NULL);
-	//PipeOrders pipes = {&in, &out, &sortorder,runlen};
-
-	PipeOrders pipes = {in, out, sortorder,runlen};
-
-
-	cout << "2. BigQ() &in:  " << pipes.inPipe << endl;
-	cout << "2. BigQ() &out: " << pipes.outPipe << endl;
-	cout << "2. BigQ() &sortorder: " << pipes.order << endl;
-	cout << "2. BigQ() runlen: " << pipes.runLength << endl;
-	pthread_t thread1;
-	pthread_create (&thread1, NULL, bigqthread, (void *)&pipes);
-	//pthread_join (thread1, NULL);	
-}*/
-
-BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
-	
-	inPipe = &in;
-	outPipe = &out;
-	order = &sortorder;
-	runLength = runlen;
-	pthread_t worker_thread;
-	
-	if(pthread_create(&worker_thread, NULL, &bigqthread, (void *)this) != 0)
-	{
-		cerr<< "Worker thread creation failed"<<endl;
-				exit(EXIT_FAILURE);
-	}
-	//pthread_join(worker_thread,NULL);
-	
-	outPipe->ShutDown ();
 }
 
 BigQ::~BigQ () {
