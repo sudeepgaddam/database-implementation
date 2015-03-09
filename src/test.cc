@@ -13,6 +13,7 @@ int add_data (FILE *src, int numrecs, int &res) {
 	int proc = 0;
 	int xx = 20000;
 	int count = 0;
+	numrecs = 20000;
 	while ((res = temp.SuckNextRecord (rel->schema (), src)) && ++proc < numrecs) {
 		dbfile.Add (temp);
 		cout <<"add_data() SuckRecord Success! count= " << ++count << endl;

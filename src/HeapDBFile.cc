@@ -22,10 +22,13 @@ HeapDBFile::HeapDBFile () {
 }
 
 int HeapDBFile::Create (char *f_path, fType f_type, void *startup) {
-    char tbl_path[100];
-    sprintf (tbl_path, "%s.meta", f_path);
+    //char tbl_path[100];
+    //sprintf (tbl_path, "%s.meta", f_path);
+     string s=f_path;
+     s=s.substr(0,s.length()-4)+".meta";
+     char* m_filename=(char*)s.c_str();
 
-    ofstream out(tbl_path);
+    ofstream out(m_filename);
     if(!out ) {
        cout << "Couldn't open file."  << endl;
     }
