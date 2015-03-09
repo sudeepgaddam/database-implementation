@@ -224,18 +224,21 @@ void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe *outpipe){
 }
 
 
-void *bigqthread (void *arg) {
-	PipeOrders *pipes = (PipeOrders *) arg;
-	
-	cout << "0 *bigqthread() &in:  " << ((PipeOrders *) arg)->inPipe << endl;
-	cout << "0 *bigqthread() &out: " << ((PipeOrders *) arg)->outPipe << endl;
-	cout << "0 *bigqthread() &sortorder: " << ((PipeOrders *) arg)->order << endl;
-	cout << "0 *bigqthread() runlen: " << pipes->runLength << endl;
+void *bigqthread (void *args) {
 
-	Pipe *in = pipes->inPipe;
-	Pipe *out = pipes->outPipe;
-	OrderMaker *sortorder = pipes->order;
-	int runlen = pipes->runLength;
+	BigQ *bq=(BigQ *)args;
+
+	//PipeOrders *pipes = (PipeOrders *) arg;
+	
+	cout << "0 *bigqthread() &in:  " << bq->inPipe << endl;
+	cout << "0 *bigqthread() &out: " << bq->outPipe << endl;
+	cout << "0 *bigqthread() &sortorder: " << bq->order << endl;
+	cout << "0 *bigqthread() runlen: " << bq->runLength << endl;
+
+	Pipe *in = bq->inPipe;
+	Pipe *out = bq->outPipe;
+	OrderMaker *sortorder = bq->order;
+	int runlen = bq->runLength;
 
 	/*Pipe &in = *(pipes->inPipe);
 	Pipe &out = *(pipes->outPipe);
@@ -340,12 +343,12 @@ void *bigqthread (void *arg) {
 	cout << endl;
 	
 }
-BigQ :: BigQ (Pipe *in, Pipe *out, OrderMaker *sortorder, int runlen) {
+/*BigQ :: BigQ (Pipe *in, Pipe *out, OrderMaker *sortorder, int runlen) {
 	/*PipeOrders pipes;
 	pipes.inPipe  = &in;
 	pipes.outPipe = &out;
 	pipes.order = &sortorder;
-	pipes.runLength = runlen;*/
+	pipes.runLength = runlen;*
 
 	//cout << "0. BigQ c'tor: &in_pipe: " << in << endl;
 	//cout << "0. BigQ c'tor: &out_pipe: " << out << endl;
@@ -369,6 +372,24 @@ BigQ :: BigQ (Pipe *in, Pipe *out, OrderMaker *sortorder, int runlen) {
 	pthread_t thread1;
 	pthread_create (&thread1, NULL, bigqthread, (void *)&pipes);
 	//pthread_join (thread1, NULL);	
+}*/
+
+BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
+	
+	inPipe = &in;
+	outPipe = &out;
+	order = &sortorder;
+	runLength = runlen;
+	pthread_t worker_thread;
+	
+	if(pthread_create(&worker_thread, NULL, &bigqthread, (void *)this) != 0)
+	{
+		cerr<< "Worker thread creation failed"<<endl;
+				exit(EXIT_FAILURE);
+	}
+	//pthread_join(worker_thread,NULL);
+	
+	outPipe->ShutDown ();
 }
 
 BigQ::~BigQ () {

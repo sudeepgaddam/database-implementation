@@ -27,6 +27,7 @@ private:
 
 public:
 
+
 	// this sets up the pipeline; the parameter is the number of
 	// records to buffer
 	Pipe (int bufferSize);	

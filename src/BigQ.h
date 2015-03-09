@@ -8,17 +8,25 @@
 
 using namespace std;
 
-typedef struct {
-        Pipe *inPipe;
-        Pipe *outPipe;
+/*typedef struct {
+        Pipe inPipe;
+        Pipe outPipe;
         OrderMaker *order;
 	int runLength;
-}PipeOrders;
+}PipeOrders;*/
 
 
 class BigQ {
+
+	
 public:
-	BigQ (Pipe *in, Pipe *out, OrderMaker *sortorder, int runlen);
+
+	Pipe *inPipe;
+        Pipe *outPipe;
+        OrderMaker *order;
+	int runLength;
+
+	BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen);
 	~BigQ ();
 };
 
