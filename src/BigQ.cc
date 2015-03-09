@@ -231,6 +231,7 @@ BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
 	// read data from in pipe sort them into runlen pages
 	Record rec;
 	Record temp;
+	localOrder = &sortorder;
 	Schema *rschema = new Schema ("data/catalog", "region");
 	Schema *lschema = new Schema ("data/catalog", "lineitem");
 	Schema *psschema = new Schema ("data/catalog", "partsupp");
