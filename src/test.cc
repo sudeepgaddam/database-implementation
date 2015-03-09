@@ -12,12 +12,10 @@ int add_data (FILE *src, int numrecs, int &res) {
 
 	int proc = 0;
 	int xx = 20000;
-	cout << "add_data() Start!" << endl;
 	int count = 0;
 	while ((res = temp.SuckNextRecord (rel->schema (), src)) && ++proc < numrecs) {
-		//cout <<"add_data() SuckRecord Success!" << endl;
 		dbfile.Add (temp);
-		cout <<"add_data() SuckRecord Success! count= " << count++ << endl;
+		cout <<"add_data() SuckRecord Success! count= " << ++count << endl;
 		if (proc == xx) cerr << "\t ";
 		if (proc % xx == 0) cerr << ".";
 	}

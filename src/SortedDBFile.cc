@@ -151,14 +151,9 @@ void SortedDBFile::Add (Record &rec) {
 		firstTime = false;
 		in_pipe = new Pipe(100); //TODO
 		out_pipe = new Pipe(100);
-		cout << "Add() &in_pipe: " << in_pipe << endl;
-		cout << "Add() &out_pipe: " << out_pipe << endl;
-		cout << "Add() &myOrder: " << myOrder << endl;
-		cout << "Add() runLength: " << runLength << endl;
 		sortq = new BigQ(*in_pipe, *out_pipe, *myOrder, runLength);
 	}
 
-    cout << "SortedDBFile.Add() Start! mode = " << mode << endl;
 
     if (mode == Write) {
 	in_pipe->Insert(&rec);
