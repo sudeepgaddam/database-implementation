@@ -14,7 +14,6 @@ class DBFile {
 
 private:
 	GenericDBFile *gendbfile;
-	fType file_type;
 public:
     //Constructor
 	DBFile ();
@@ -50,6 +49,8 @@ public:
 	//page level read and wirte
 	int GetPage (Page *putItHere, off_t whichPage);
 	//void AddPage(Page *srcPage);
+
+	void DumpWriteBuffer();
 	
 };
 #endif

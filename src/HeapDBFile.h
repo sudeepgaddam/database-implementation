@@ -56,7 +56,7 @@ public:
 	//void AddPage(Page *srcPage);
 
 	bool isEmpty();
-	
+	void DumpWriteBuffer();
 };
 #endif
 

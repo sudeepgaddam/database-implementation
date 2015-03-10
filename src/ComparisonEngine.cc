@@ -15,9 +15,10 @@ int ComparisonEngine :: Compare(Record *left, Record *right, OrderMaker *orderUs
 
 	char *left_bits = left->GetBits();
 	char *right_bits = right->GetBits();
-	cout <<"Printing addresses "<< (void *)left_bits <<"   "<< (void *)right_bits <<endl; 
-orderUs->Print();
+	//cout <<"Printing addresses "<< (void *)left_bits <<"   "<< (void *)right_bits <<endl; 
+	//orderUs->Print();
 	for (int i = 0; i < orderUs->numAtts; i++) {
+
 		val1 = left_bits + ((int *) left_bits)[orderUs->whichAtts[i] + 1];
 		val2 = right_bits + ((int *) right_bits)[orderUs->whichAtts[i] + 1];
 	
@@ -27,6 +28,7 @@ orderUs->Print();
 		
 		// now check the type and do the comparison
 		switch (orderUs->whichTypes[i]) {
+
 	
 			// first case: we are dealing with integers
 			case Int:
@@ -36,11 +38,12 @@ orderUs->Print();
 			val2Int = *((int *) val2);
 	
 			// and do the comparison
-			if (val1Int < val2Int) 
+			if (val1Int < val2Int) {
 				return -1;
-			else if (val1Int > val2Int)
+			}
+			else if (val1Int > val2Int){
 				return 1;
-	
+			}
 			break;
 	
 	

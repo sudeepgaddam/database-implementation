@@ -13,7 +13,6 @@ class Comparison {
 
 	friend class ComparisonEngine;
 	friend class CNF;
-	
 
 	Target operand1;
 	int whichAtt1;
@@ -33,8 +32,6 @@ public:
 
 	// print to the screen
 	void Print ();
-
-	int IsEqualityCheck(int attribute);
 };
 
 
@@ -45,7 +42,6 @@ class OrderMaker {
 
 	friend class ComparisonEngine;
 	friend class CNF;
-	friend class SortedDBFile;
 
 	int numAtts;
 
@@ -108,8 +104,6 @@ public:
 		Record &literal);
 
 	int getNumAnds();
-
-	int HasSimpleEqualityCheck(int attribute);
 
 };
 

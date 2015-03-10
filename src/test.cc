@@ -13,15 +13,14 @@ int add_data (FILE *src, int numrecs, int &res) {
 	int proc = 0;
 	int xx = 20000;
 	int count = 0;
-	numrecs = 20000;
 	while ((res = temp.SuckNextRecord (rel->schema (), src)) && ++proc < numrecs) {
 		dbfile.Add (temp);
 		cout <<"add_data() SuckRecord Success! count= " << ++count << endl;
 		if (proc == xx) cerr << "\t ";
 		if (proc % xx == 0) cerr << ".";
 	}
-
-//	dbfile.Close ();
+	//dbfile.DumpWriteBuffer();
+	dbfile.Close ();
 	return proc;
 }
 
@@ -44,6 +43,8 @@ void test1 () {
 	cout << "\n output to dbfile : " << rel->path () << endl;
 	dbfile.Create (rel->path(), sorted, &startup);
 	dbfile.Close ();
+
+	cout << "HERE" << endl;
 
 	char tbl_path[100];
 	sprintf (tbl_path, "%s%s.tbl", tpch_dir, rel->name()); 

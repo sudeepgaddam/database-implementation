@@ -272,6 +272,8 @@ void File :: AddPage (Page *addMe, off_t whichPage) {
 	addMe->ToBinary (bits);
 	lseek (myFilDes, PAGE_SIZE * whichPage, SEEK_SET);
 	write (myFilDes, bits, PAGE_SIZE);
+	lseek (myFilDes, 0, SEEK_SET);
+	write (myFilDes, &curLength, sizeof(off_t));
 	delete [] bits;
 #ifdef F_DEBUG
 	cerr << " File: curLength " << curLength << " whichPage " << whichPage << endl;
@@ -292,9 +294,9 @@ void File :: Open (int fileLen, char *fName) {
 	// actually do the open
         myFilDes = open (fName, mode, S_IRUSR | S_IWUSR);
 
-#ifdef verbose
+//#ifdef verbose
 	cout << "Opening file " << fName << " with "<< curLength << " pages.\n";
-#endif
+//#endif
 
 	// see if there was an error
 	if (myFilDes < 0) {
@@ -308,6 +310,7 @@ void File :: Open (int fileLen, char *fName) {
 		// read in the first few bits, which is the page size
 		lseek (myFilDes, 0, SEEK_SET);
 		read (myFilDes, &curLength, sizeof (off_t));
+		cout << "Curlength after reading from file:  " <<curLength<<endl;
 
 	} else {
 		curLength = 0;

@@ -48,6 +48,8 @@ virtual	int GetNext (Record &fetchme, CNF &cnf, Record &literal);
 	//page level read and wirte
 virtual	int GetPage (Page *putItHere, off_t whichPage);
 	//void AddPage(Page *srcPage);
+
+virtual void DumpWriteBuffer();
 	
 };
 #endif

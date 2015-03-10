@@ -46,3 +46,6 @@ int GenericDBFile:: GetPage (Page *putItHere, off_t whichPage) {
 	return 0; //whichPage out of range
 }
 
+
+void GenericDBFile::DumpWriteBuffer(){
+}

@@ -200,7 +200,7 @@ void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe *outpipe){
 	}
 	cout << "***** Success!! Phase Two Ends " << endl;
 
-	cout << "Print infile records -- should not be in sorted order" << endl;
+	/*cout << "Print infile records -- should not be in sorted order" << endl;
 	infile->MoveFirst();
 	Record inrec;
 	int inreccount = 0;
@@ -208,7 +208,7 @@ void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe *outpipe){
 		inrec.Print();
 		inreccount++;
 	}
-	cout << "End of infile!! contains-> " << inreccount << " records" << endl;
+	cout << "End of infile!! contains-> " << inreccount << " records" << endl;*/
 	/*cout << "Print outfile records -- should be in sorted order" << endl;
 	outfile->MoveFirst();
 	Record outrec;
