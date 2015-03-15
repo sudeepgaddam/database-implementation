@@ -19,11 +19,18 @@ DBFile::DBFile () {
  * Leave the metadata filling part to respective create function
  */
 int DBFile::Create (char *f_path, fType f_type, void *startup) {
+	char tbl_path[100];
+    sprintf (tbl_path, "%s.meta", f_path);
+	ofstream out(tbl_path);
+    if(!out ) {
+       cout << "Couldn't open file."  << endl;
+    }
 	if (f_type == heap) {
-		cout << "Heap file creation" <<endl;
+		//cout << "Heap file creation" <<endl;
 	        gendbfile = new HeapDBFile();
+	        out << "heap";
 	} else if(f_type = sorted) {
-		cout << "Sorted file creation" <<endl;
+		//cout << "Sorted file creation" <<endl;
 	        gendbfile = new SortedDBFile();
 	}
 	return gendbfile->Create(f_path, f_type, startup);
@@ -49,10 +56,10 @@ int DBFile::Open (char *f_path) {
   	if (myfile.is_open()) {
 		if (getline (myfile,line)) {
 		    if (line.compare("heap") == 0) {
-			cout <<"Creating heap dbfile" <<endl;
+			//cout <<"Creating heap dbfile" <<endl;
 	        	gendbfile = new HeapDBFile();
 		    } else if (line.compare("sorted") == 0) {
-			cout <<"Creating sorted dbfile" <<endl;
+			//cout <<"Creating sorted dbfile" <<endl;
 	       		gendbfile = new SortedDBFile();
 		    }
 		}

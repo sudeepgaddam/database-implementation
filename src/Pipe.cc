@@ -82,6 +82,7 @@ int Pipe :: Remove (Record *removeMe) {
 	// first, get a mutex on the pipeline
 	pthread_mutex_lock (&pipeMutex);
 
+
 	// next, see if there is anything in the pipeline; if
 	// there is, then do the removal
 	if (lastSlot != firstSlot) {
@@ -100,8 +101,12 @@ int Pipe :: Remove (Record *removeMe) {
 			return 0;
 		}
 
+		//cout<< "Pipe.Remove() cond_wait! Start" << endl;
+
 		// wait until there is something there
 		pthread_cond_wait (&consumerVar, &pipeMutex);
+
+		//cout<< "Pipe.Remove() cond_wait! Success" << endl;
 
 		// since the producer may have decided to turn off
 		// the pipe, we need to check if it is still open

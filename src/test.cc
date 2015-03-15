@@ -9,13 +9,13 @@ int add_data (FILE *src, int numrecs, int &res) {
 	DBFile dbfile;
 	dbfile.Open (rel->path ());
 	Record temp;
-
+	cout << "Add_data.numrec: " << numrecs << endl;
 	int proc = 0;
 	int xx = 20000;
 	int count = 0;
 	while ((res = temp.SuckNextRecord (rel->schema (), src)) && ++proc < numrecs) {
 		dbfile.Add (temp);
-		cout <<"add_data() SuckRecord Success! count= " << ++count << endl;
+		//cout <<"add_data() SuckRecord Success! count= " << ++count << endl;
 		if (proc == xx) cerr << "\t ";
 		if (proc % xx == 0) cerr << ".";
 	}
@@ -87,8 +87,6 @@ void test2 () {
 	dbfile.MoveFirst ();
 
 	Record temp;
-	
-	cout << "Before Scanning" << endl;
 
 	int cnt = 0;
 	cerr << "\t";

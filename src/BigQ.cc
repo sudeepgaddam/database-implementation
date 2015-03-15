@@ -4,7 +4,9 @@
 #include <iostream>
 #include "DBFile.h"
 #include <queue>
+#include <stdio.h>
 
+int BigQ::filecounter = 0;
 
 OrderMaker *localOrder;
 ComparisonEngine compEng;
@@ -41,7 +43,7 @@ struct RecordInfo{
 };
 
 
-void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe *outpipe){
+void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe *outpipe, int filecounter){
 	
 
 	int num_buffers = num_runs; // num of runs	
@@ -50,10 +52,18 @@ void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe *outpipe){
 	vector<Page> buffers;
 
 	priority_queue<RecordInfo> pq;  //greater than comparison -> min pq
+
+	char *tmppath0 = "abc0";
+	char *tmppath1 = "abc1";
 	
-	char * fpath = "lineitem.in";
+	char * fpath;
+	cout << "phasetwo-filecounter: " << filecounter << endl;
+	if(filecounter==1) fpath = tmppath0;
+	else fpath = tmppath1;
 	infile->Open(fpath);
 	infile->MoveFirst();
+
+	cout << "phasetwo-fpath: " << fpath << endl;
 
 	off_t whichpages[num_buffers];
 
@@ -92,7 +102,13 @@ void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe *outpipe){
 		                
 	}
 
-	char * foutpath = "lineitems.sorted";
+	char *fout0 = "out0";
+	char *fout1 = "out1";
+	
+	char * foutpath;
+	if(filecounter==1) foutpath = fout0;
+	else foutpath = fout1;
+
 	DBFile* outfile = new DBFile();
 	outfile->Create(foutpath, heap, NULL);
 	outfile->Open(foutpath);
@@ -174,12 +190,12 @@ void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe *outpipe){
 		while(true){
 			tempInfo.rec = new Record();
 			if(buffers[bufferindex].GetFirst(tempInfo.rec)){	//replaced GetCurrent	//need to break into small functions !!
-				//cout << "Add buffer record into file" << endl;
+				cout << "Add buffer record into file" << endl;
 				//tempInfo.rec->Print(schema);
 				//outfile->Add(*tempInfo.rec);
 				outpipe->Insert(tempInfo.rec);
 			}else{
-				//cout << "End of last buffer!!" << endl;
+				cout << "End of last buffer!!" << endl;
 				break;
 			}
 		}
@@ -192,6 +208,7 @@ void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe *outpipe){
 			while(buffers[bufferindex].GetFirst(rec)){   //replaced GetCurrent
 				//rec->Print(schema);
 				//outfile->Add(*rec);
+				cout << "Dump records into outpipe" << endl;
 				outpipe->Insert(rec);
 			}
 			whichpages[bufferindex]++;
@@ -200,33 +217,19 @@ void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe *outpipe){
 	}
 	cout << "***** Success!! Phase Two Ends " << endl;
 
-	/*cout << "Print infile records -- should not be in sorted order" << endl;
-	infile->MoveFirst();
-	Record inrec;
-	int inreccount = 0;
-	while (infile->GetNext (inrec) == 1) {
-		inrec.Print();
-		inreccount++;
-	}
-	cout << "End of infile!! contains-> " << inreccount << " records" << endl;*/
-	/*cout << "Print outfile records -- should be in sorted order" << endl;
-	outfile->MoveFirst();
-	Record outrec;
-	int outreccount = 0;
-	while (outfile->GetNext (outrec) == 1) {
-		//outrec.Print();
-		outreccount++;
-	}
-	cout << "End of outfile!! contains-> " << outreccount << " records" << endl;*/
+	infile->Close();
+	remove(foutpath);
 
-	outfile->Close();
 
 }
+
 
 
 BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
 
 	int count = 0;
+	
+	filecounter++;
 
 	// read data from in pipe sort them into runlen pages
 	Record rec;
@@ -238,7 +241,17 @@ BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
 	Schema *pschema = new Schema ("data/catalog", "partsupp");
     	Schema *schema = pschema;
 	DBFile tempFile;
-	char * fpath = "lineitem.in";
+
+	char *tmppath0 = "abc0";
+	char *tmppath1 = "abc1";
+	
+	char * fpath;
+	if(filecounter==1) fpath = tmppath0;
+	else fpath = tmppath1;
+
+	cout << "BigQ.filecounter: " << filecounter << endl;
+	cout << "BigQ.fpath: " << fpath << endl;
+
 	tempFile.Create(fpath, heap, NULL);
 
       	vector<Record> vrec;	
@@ -253,8 +266,13 @@ BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
 
 	cout << "***** Start reading from in-pipe" << endl;
 	int i = 0;
+
+	int incounter = 0;
+	int counter = 0;
 	
 	while(in.Remove(&rec)){
+
+		incounter++;
 		
 		recordcount++;
 		int recsize = rec.GetSize();
@@ -270,6 +288,7 @@ BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
 			qsort((void *) &vrec[0], recordcount-1, sizeof(Record), Compare);
 			
 			for(int i=0; i<recordcount-1; i++){
+				counter++;
 				tempFile.Add(vrec[i]);
 			}
 			vrec.clear();
@@ -279,7 +298,7 @@ BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
 		}
 	}
 	
-	cout << "finished reading: recs - " << recordcount << endl;
+	cout << "finished reading: recs - " << incounter << endl;
 	cout << "finished reading: runs - " << runcount << endl;
 				
 	int vsize = recordcount;//vrec.size();
@@ -289,24 +308,19 @@ BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
 		qsort((void *) &vrec[0], recordcount, sizeof(Record), Compare);
 	    	//cout << "end qsort" << endl;
 	}
+
 	for(int i=0; i<vsize; i++){
+		counter++;
         	tempFile.Add(vrec[i]);
 	}
-	while (tempFile.GetNext (temp) == 1) {
-		
-		if (count < 1000) {
-			//temp.Print(schema);
-		}
-		count++;
-	}
-
 	vrec.clear();
-	tempFile.Close();
+	int tempFile_currlen = tempFile.Close();
 
 	cout << "***** Success!! Phase one ends with runs=qsortcount: " << runcount << endl;
-	cout << "***** Infile Records: " << count << endl;
+	cout << "***** Infile Records: " << counter << endl;
+	cout << "***** Infile curlen: " << tempFile_currlen << endl;
 
-	phasetwo(runcount, runlen, &tempFile, &out);
+	phasetwo(runcount, runlen, &tempFile, &out, filecounter);
 	
 
 	// construct priority queue over sorted runs and dump sorted data 
@@ -318,6 +332,10 @@ BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
 	cout << "=============== end  TPMMS ===============" << endl;
 	cout << endl;
 	cout << endl;
+	remove(fpath);
+	
+	
+	
 	
 }
 

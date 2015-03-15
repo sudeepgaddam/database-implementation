@@ -22,14 +22,6 @@ HeapDBFile::HeapDBFile () {
 }
 
 int HeapDBFile::Create (char *f_path, fType f_type, void *startup) {
-    char tbl_path[100];
-    sprintf (tbl_path, "%s.meta", f_path);
-
-    ofstream out(tbl_path);
-    if(!out ) {
-       cout << "Couldn't open file."  << endl;
-    }
-    out << "heap";
     heapfile->Open(0, f_path);
     return 1;
 }
@@ -171,7 +163,7 @@ int HeapDBFile::GetNext (Record &fetchme, CNF &cnf, Record &literal) {
 }
 
 int HeapDBFile:: GetPage (Page *putItHere, off_t whichPage) {
-	//cout << "heapfile length" << heapfile->GetLength() << endl;;
+	cout << "heapfile length" << heapfile->GetLength() << endl;;
 	if (whichPage < heapfile->GetLength()-1) {
 		return heapfile->GetPage(putItHere, whichPage);
 	}

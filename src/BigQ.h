@@ -19,6 +19,7 @@ class BigQ {
 
 	
 public:
+	static int filecounter;
 	BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen);
 	~BigQ ();
 };

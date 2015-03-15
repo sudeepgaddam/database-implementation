@@ -8,26 +8,30 @@
 #include "SortedDBFile.h"
 #include "Defs.h"
 #include <sstream>
+#include "DBFile.h"
 
 ComparisonEngine comparisonEng;
 
+
 SortedDBFile::~SortedDBFile(){
-	cout << "Sorted DBFile DESTRUCTOR" << endl;
+	//cout << "Sorted DBFile DESTRUCTOR" << endl;
 	delete heapfile;
 	delete read_page;
 	delete write_page;
 	delete outpipefile;
+
 }
 
 SortedDBFile::SortedDBFile () {
-    	cout << "Sorted DBFile Constructor called" << endl;    
+    	//cout << "Sorted DBFile Constructor called" << endl;    
 	cur_page = 0;
 	outpipefile = new File();
     	read_page = new Page();
     	heapfile = new File();
     	write_page   = new Page();
 	myOrder = new OrderMaker();
-	cout <<"SortedDBFile() Success!" << endl;
+	heapDB = new HeapDBFile();
+	
 }
 
 
@@ -51,6 +55,7 @@ int SortedDBFile::Create (char *f_path, fType f_type, void *startup) {
 	//Make the mode as write
 	//mode = Write; //TODO
 
+	fpath=f_path;
 	mode = Read; //while Adding record, we are taking care of initial Write!
 
 	SortInfo *sortinfo;
@@ -73,10 +78,10 @@ int SortedDBFile::Create (char *f_path, fType f_type, void *startup) {
 	//Setup Pipes and BigQ
 	//BuildPipeQ();
 
+	char heap_path[100];
+	sprintf (heap_path, "%s.heap", f_path);
 	heapfile->Open(0, f_path);
-
-	//sortedheapfile->Create("sortedheapfile.bin", heap, NULL);
-	//sortedheapfile->Open("sortedheapfile.bin");
+	heapDB->Create(heap_path, heap, NULL);
 	
 	return 1;
 }
@@ -120,24 +125,27 @@ void SortedDBFile::Load (Schema &f_schema, char *loadpath) {
 }
 
 int SortedDBFile::Open (char *f_path) {
-    cout <<"Sorted file opening from " << f_path <<endl;
-    char tbl_path[100];
-    sprintf (tbl_path, "%s.meta", f_path);
+    	cout <<"Sorted file opening from " << f_path <<endl;
+	char tbl_path[100];
+	sprintf (tbl_path, "%s.meta", f_path);
 
-    ifstream in(tbl_path);
-    if(!in) {
-       cout << "Couldn't open file."  << endl;
-    }
+	ifstream in(tbl_path);
+	if(!in) {
+	    cout << "Couldn't open file."  << endl;
+	}
+
+	fpath=f_path;
+	mode = Read;
+
 	//Write myOrder ordermaker and runlength from meta data file
     	GetFromMetaData(in);
-	cout << "Opening heap file from path: " <<f_path <<endl;
-    	heapfile->Open(1, f_path);
-	off_t whichPage = 0;
-	Page putItHere;
-	int getPage = heapfile->GetPage (&putItHere,whichPage);
-	cout << "getPage: " << getPage << endl;
-	cout << "SortedDBFile.Open() heapfile pages: " << heapfile->GetLength() << endl;
 
+	cout << "Opening heap file from path: " <<f_path <<endl;
+	cout << "fileMode: " << mode << endl;
+	char heap_path[100];
+	sprintf (heap_path, "%s.heap", f_path);
+    	heapfile->Open(1, f_path);
+    	heapDB->Open(heap_path);
 }
 
 void SortedDBFile::MoveFirst () {
@@ -149,13 +157,7 @@ void SortedDBFile::MoveFirst () {
 	}
 }
 
-//Dump write_page records into heapfile before closing
-void SortedDBFile::DumpWriteBuffer(){
-	int currlen = heapfile->GetLength();
-	int whichpage = currlen==0?0:currlen-1;
-        heapfile->AddPage(write_page, whichpage);
-        write_page->EmptyItOut();
-}
+
 
 int SortedDBFile::Close () {
 
@@ -168,95 +170,6 @@ int SortedDBFile::Close () {
 	}
 }
 
-int SortedDBFile::GetNextFromFile(Record &fetchme){
-
-			int ret = 0;
-			//#ifdef DBFile_Debug
-			cout << "heapfile pages: " << heapfile->GetLength() << endl;
-			cout << "curr_page: " << cur_page << endl;
-			cout << "GetNextFromFile write_page->GetNumRecs(): " << write_page->GetNumRecs() << endl;
-			//#endif
-			if ( cur_page == 0) {
-		       		 if(heapfile->GetLength() > 0){
-			//#ifdef DBFile_Debug
-					cout << "Getting Page " << cur_page <<endl;
-			//#endif
-					cur_page+=1;
-			    		read_page->EmptyItOut();
-					heapfile->GetPage(read_page, cur_page-1);
-				        read_page->MoveToStart(); //since get page advances the twoway list pointer, in FromBinary()
-				 }else{
-					if (write_page == NULL) {
-					    cout << "Error:DBFile not initialised" << endl;
-					    return 0;
-					} else if (write_page->GetNumRecs() > 0) {
-					    //Copy write page to read page
-					    cout << "Reading Records from write page" << endl;
-				            heapfile->AddPage(write_page, cur_page);
-				            write_page->EmptyItOut();
-			    		    read_page->EmptyItOut();
-					    heapfile->GetPage(read_page, cur_page);
-				            read_page->MoveToStart(); //since get page advances the twoway list pointer, in FromBinary()
-					    cur_page+=1;
-		 			}
-				 }
-		    	}
-			//#ifdef DBFile_Debug
-				cout << "got page? cur_page: " << cur_page << endl;	
-				cout << "No of recs in cur_page: " << read_page->GetNumRecs() << endl;
-			//#endif
-		    	ret = read_page->GetCurrent(&fetchme);
-
-			if (ret == 0) {
-				/*
-				 * If curpage is 1, load next page from file only if File length is 3 because 
-				 * there is an empty page 
-				 */
-				if (cur_page < (heapfile->GetLength() -1)) {
-			
-			    		read_page->EmptyItOut();
-					heapfile->GetPage(read_page, cur_page);
-			    		read_page->MoveToStart();
-			    		read_page->GetCurrent(&fetchme);
-					cur_page+=1;
-			    		ret = 1;
-				} else if (write_page->GetNumRecs() > 0) {
-				
-				            heapfile->AddPage(write_page, cur_page);
-				            write_page->EmptyItOut();
-			    		    read_page->EmptyItOut();
-					    heapfile->GetPage(read_page, cur_page);
-				            read_page->MoveToStart(); //since get page advances the twoway list pointer, in FromBinary()
-			    		    read_page->GetCurrent(&fetchme);
-					    cur_page+=1;
-					    ret = 1;
-					//Copy write page to read page;Mark dirty
-			    		//we have reached end in DBFile, if we have some info in write_page, getRecord from it   
-				}else{
-								cout << "2. condition" << endl;
-				}
-		    	}
-			cout << "ret: " << ret << endl;
-		   	return ret;
-
-}
-
-
-int SortedDBFile::AddToFile(Record &rec){
-	    int ret;
-	    ret = write_page->Append(&rec); 
-	    if (ret == 0) {
-		//Could not fit in page; Add it to File
-		int currlen = heapfile->GetLength();
-		int whichpage = currlen==0?0:currlen-1;
-		heapfile->AddPage(write_page, whichpage);
-		write_page->EmptyItOut();
-		write_page->Append(&rec);
-	    }
-	    cout << "AddToFile Success! write_page->GetNumRecs(): " << write_page->GetNumRecs() << endl;
-}
-
-
 /*
  * Fetches the (next) record from DBFile in the read_page
  * if we read end in read_page, fetch next page from DBFile
@@ -264,14 +177,14 @@ int SortedDBFile::AddToFile(Record &rec){
  */
 int SortedDBFile::GetNext (Record &fetchme) {
 	//read data from outpipe and store it in sortedheapfile!
-	cout << "GetNext mode= " << mode << endl;
+	
 	if (mode == Write) {
-		cout << "SortedDBFile.GetNext Write!" << endl;
+		//cout << "SortedDBFile.GetNext Write!" << endl;
 		SwitchMode();
 	} else if (mode == Read) {
-		cout << "SortedDBFile.GetNext Read!" << endl;
+		//cout << "SortedDBFile.GetNext Read!" << endl;
 		//Start copying HEAPDBFILE functionality
-		return GetNextFromFile(fetchme);
+		return heapDB->GetNext(fetchme);
 		//End copying HEAPDBFILE functionality   
 		//return sortedheapfile->GetNext(fetchme);
 	}
@@ -302,13 +215,20 @@ int SortedDBFile:: GetPage (Page *putItHere, off_t whichPage) {
 }
 
 
+
+
+
+
 /* Merges records from sortedheapfile with BigQ.outPipe and store in tempFile;
 */
-void SortedDBFile::Merge(){
+/*void SortedDBFile::MergeOld(){
 
 	//HeapDBFile *tempFile = new HeapDBFile();
 	//tempFile.Create();
 	//tempFile.Open();
+
+	outpipefile->Open(0,"outpipe_file.bin");
+	outpipe_write_page = new Page();
 
 	cout << "Merge() Start!" << endl;
 	bool fileEmpty = false;
@@ -317,7 +237,7 @@ void SortedDBFile::Merge(){
 		heapfile->GetPage(read_page,whichPage);
 	}
 	else fileEmpty=true;
-	cout <<"Merge() heapfile.GetLength(): " << heapfile->GetLength() << endl;
+	//cout <<"Merge() heapfile.GetLength(): " << heapfile->GetLength() << endl;
 	Record filerec;
 	Record piperec;
 	int fileStatus;
@@ -332,59 +252,66 @@ void SortedDBFile::Merge(){
 			cout << "Merge() Iterate!" << endl;
 
 			fileStatus = GetNextFromFile(filerec);
-			pipeStatus = out->Remove(&piperec);
 
 			cout << "fileStatus: " << fileStatus << endl;
+	
+			pipeStatus = out->Remove(&piperec);
+			
 			cout << "pipeStatus: " << pipeStatus << endl;
 
 			one_ends = (fileStatus == 0) || (pipeStatus == 0);
 	
-			cout << "one_ends: " << one_ends << endl;
+			//cout << "one_ends: " << one_ends << endl;
 
 			if(one_ends)
 				break;
 
 
 
-			cout << "Merge() filerec.Print() Start!" << endl;
+			/*cout << "Merge() filerec.Print() Start!" << endl;
 			filerec.Print();
 			cout << "Merge() filerec.Print() Success!" << endl;
 			cout << "Merge() piperec.Print() Start!" << endl;
 			piperec.Print();
-			cout << "Merge() piperec.Print() Success!" << endl;
+			cout << "Merge() piperec.Print() Success!" << endl;*
 			int compStatus = comparisonEng.Compare(&filerec, &piperec, myOrder);
-			cout << "compare Success!" << endl;
+			
 
 			if(compStatus <0){
-				//tempFile.Add(filerec);
 				cout << "File Rec Smaller: " << endl;
-				//filerec.Print();
+				AddToOutPipeFile(filerec);
 			}else{
 				cout << "Pipe Rec Smaller: " << endl;
-				//tempFile.Add(piperec);
-				//piperec.Print();
+				AddToOutPipeFile(piperec);
 			}
 		}
 		if(fileStatus == 0){
+			while(out->Remove(&piperec)){
+				AddToOutPipeFile(piperec);
+			}
 		
 		}else if(pipeStatus == 0){
-		
+			while(GetNextFromFile(filerec)){
+				AddToOutPipeFile(filerec);
+			}
 		}
 
 	}else{
-		cout << "0. Dump outpipe into tempFile" << endl;
+		//cout << "0. Dump outpipe into tempFile" << endl;
 		while(out->Remove(&piperec)) {
 			//tempFile.Add(piperec);
-			cout << "1. Dump outpipe into tempFile" << endl;
+			//cout << "1. Dump outpipe into tempFile" << endl;
 			AddToFile(piperec);
 		}
 		DumpWriteBuffer();
 		
 	}
 	
+	rename("outpipe_file.bin",fpath);
+	outpipefile->Close();
 	cout << "Merge() Success!" << endl;
 
-}
+}*/
 
 /*
 
@@ -430,9 +357,86 @@ merge(BigQ, sorted_data){
 
 */
 
-void *run_q (void *arg) {
+void* run_q (void *arg) {
+	
 	bigq_util *t = (bigq_util *) arg;
 	BigQ b_queue(*(t->inpipe),*(t->outpipe),*(t->sort_order),t->run_len);
+}
+
+
+void SortedDBFile::Merge(){
+
+	bool fileEmpty = heapDB->isEmpty();
+	off_t whichPage = 0;
+	Record filerec;
+	Record piperec;
+
+	if(!fileEmpty){
+	
+		Pipe *in1;
+    		Pipe *out1;
+		bigq_util* util1;
+		pthread_t second_bigq_thread;
+		in1 = new  (std::nothrow) Pipe(PIPE_BUFFER);
+		out1 = new (std::nothrow) Pipe(PIPE_BUFFER);
+		util1 = new bigq_util();
+		util1->inpipe=in1;
+		util1->outpipe=out1;
+		util1->sort_order=myOrder;
+		util1->run_len=runLength;
+		
+
+		
+		
+		int outpiperecs = 0;
+		HeapDBFile *tempFile = new HeapDBFile();
+		char *a = "tmp";
+		tempFile->Create(a, heap, NULL);
+		while(out->Remove(&piperec)){
+			heapDB->Add(piperec);
+			outpiperecs++;
+		}
+		cout << "FirstBigQ outpiperecs: " << outpiperecs << endl;
+		
+
+		pthread_join(thread1, NULL);
+	
+		cout << "### start secondBigQThread()" << endl;
+		pthread_create (&second_bigq_thread, NULL,run_q, (void*)util1);
+
+		int filereccount = 0;
+		heapDB->MoveFirst();
+		while(heapDB->GetNext(filerec)){
+			in1->Insert(&filerec);
+			filereccount++;
+		}
+		cout << "filereccount: " << filereccount << endl;
+		in1->ShutDown();
+		cout << "Second Bigq inPipe Closed" <<endl;
+		Record sortedrec;
+		filereccount = 0;
+		
+		while(out1->Remove(&sortedrec)){
+			tempFile->Add(sortedrec);
+			filereccount++;
+		}		
+		cout << "Sorted out record count: " << filereccount << endl;
+
+				delete heapDB;
+				//Rename tmp file
+				rename(a,fpath);
+				heapDB = tempFile;
+
+	}else{
+		cout <<"DumpSortedOutPipeContents into originalheapfile Start!" << endl;
+		while(out->Remove(&piperec)) {
+			  heapDB->Add(piperec);
+		}
+		
+	//	DumpWriteBuffer();
+
+	}
+
 }
 
 void SortedDBFile::SwitchMode() {

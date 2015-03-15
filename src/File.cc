@@ -210,6 +210,7 @@ File :: File () {
 }
 
 File :: ~File () {
+	remove(fname);
 }
 
 
@@ -275,9 +276,9 @@ void File :: AddPage (Page *addMe, off_t whichPage) {
 	lseek (myFilDes, 0, SEEK_SET);
 	write (myFilDes, &curLength, sizeof(off_t));
 	delete [] bits;
-#ifdef F_DEBUG
+//#ifdef F_DEBUG
 	cerr << " File: curLength " << curLength << " whichPage " << whichPage << endl;
-#endif
+//#endif
 }
 
 
@@ -290,7 +291,8 @@ void File :: Open (int fileLen, char *fName) {
         else
                 mode = O_RDWR;
 	//cout << "Before OPENED FILE" << endl;
-
+	//Copy file name
+	fname = fName;
 	// actually do the open
         myFilDes = open (fName, mode, S_IRUSR | S_IWUSR);
 
@@ -310,7 +312,7 @@ void File :: Open (int fileLen, char *fName) {
 		// read in the first few bits, which is the page size
 		lseek (myFilDes, 0, SEEK_SET);
 		read (myFilDes, &curLength, sizeof (off_t));
-		cout << "Curlength after reading from file:  " <<curLength<<endl;
+		//cout << "Curlength after reading from file:  " <<curLength<<endl;
 
 	} else {
 		curLength = 0;

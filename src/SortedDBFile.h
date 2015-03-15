@@ -12,6 +12,7 @@
 #include "GenericDBFile.h"
 #include "HeapDBFile.h"
 
+
 #define PIPE_BUFFER 100
 
 typedef enum {Read, Write} Mode;
@@ -24,6 +25,8 @@ typedef struct SortInfo {
 class SortedDBFile : virtual public GenericDBFile {
 
 private:
+	Page *outpipe_write_page;
+	char* fpath;
 	File *outpipefile; //sortedfile
     File *heapfile;
     Page *write_page; //Record writes go into this page
@@ -32,15 +35,13 @@ private:
     bool dirty;       //If true, current page being read is dirty(Not yet written to disk). 
     fType type;
 
-	HeapDBFile* sortedheapfile;
-
 	Mode mode;
 
 	Pipe *in;
     	Pipe *out;
     	OrderMaker *myOrder;
 	int runLength;
-
+	HeapDBFile *heapDB;
 	bigq_util* util;
 	pthread_t thread1;
 	
@@ -92,11 +93,8 @@ public:
 
 	void Merge();
 
-	int GetNextFromFile(Record &fetchme);
+	int AddToOutPipeFile(Record &rec);	
 
-	int AddToFile(Record &rec);
-
-	void DumpWriteBuffer();
 	
 };
 

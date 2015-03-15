@@ -67,6 +67,7 @@ private:
 
 	int myFilDes;
 	off_t curLength; 
+	char *fname;
 
 public:
 
