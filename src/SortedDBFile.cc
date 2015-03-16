@@ -9,9 +9,11 @@
 #include "Defs.h"
 #include <sstream>
 #include "DBFile.h"
+#include <unistd.h>
+
 
 ComparisonEngine comparisonEng;
-
+int SortedDBFile::addcount = 0;
 
 SortedDBFile::~SortedDBFile(){
 	//cout << "Sorted DBFile DESTRUCTOR" << endl;
@@ -78,10 +80,9 @@ int SortedDBFile::Create (char *f_path, fType f_type, void *startup) {
 	//Setup Pipes and BigQ
 	//BuildPipeQ();
 
-	char heap_path[100];
-	sprintf (heap_path, "%s.heap", f_path);
+
 	heapfile->Open(0, f_path);
-	heapDB->Create(heap_path, heap, NULL);
+	heapDB->Create(f_path, heap, NULL);
 	
 	return 1;
 }
@@ -97,7 +98,7 @@ void SortedDBFile::Add (Record &rec) {
 		SwitchMode();
 	}
 	in->Insert(&rec);
-
+	cout <<"addcount: " << ++addcount << endl;
 	/*
 	int ret;
     	ret = write_page->Append(&rec); 
@@ -142,16 +143,17 @@ int SortedDBFile::Open (char *f_path) {
 
 	cout << "Opening heap file from path: " <<f_path <<endl;
 	cout << "fileMode: " << mode << endl;
-	char heap_path[100];
-	sprintf (heap_path, "%s.heap", f_path);
+
     	heapfile->Open(1, f_path);
-    	heapDB->Open(heap_path);
+    	heapDB->Open(f_path);
+    	
 }
 
 void SortedDBFile::MoveFirst () {
 	if (mode == Write) {
 		SwitchMode();
 	} else if (mode == Read) {
+		heapDB->MoveFirst();
 		cur_page = 0;		
 		//return sortedheapfile->MoveFirst();
 	}
@@ -367,6 +369,7 @@ void* run_q (void *arg) {
 void SortedDBFile::Merge(){
 
 	bool fileEmpty = heapDB->isEmpty();
+	cout<<"is File Empty?"<<fileEmpty<<endl;
 	off_t whichPage = 0;
 	Record filerec;
 	Record piperec;
@@ -421,7 +424,9 @@ void SortedDBFile::Merge(){
 			filereccount++;
 		}		
 		cout << "Sorted out record count: " << filereccount << endl;
-
+		
+		sleep(5);
+		
 				delete heapDB;
 				//Rename tmp file
 				rename(a,fpath);
@@ -429,10 +434,13 @@ void SortedDBFile::Merge(){
 
 	}else{
 		cout <<"DumpSortedOutPipeContents into originalheapfile Start!" << endl;
+		int reccount = 0;
+		cout<<"Merge() out address" << out <<endl;
 		while(out->Remove(&piperec)) {
 			  heapDB->Add(piperec);
+			  reccount++;
 		}
-		
+		cout << "merge()  removed record count from out pipe " <<reccount<<endl;
 	//	DumpWriteBuffer();
 
 	}

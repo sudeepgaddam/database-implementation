@@ -44,9 +44,12 @@ private:
 	HeapDBFile *heapDB;
 	bigq_util* util;
 	pthread_t thread1;
-	
+
+		
 
 public:
+
+	static int addcount;
 
     //Constructor
 	SortedDBFile ();

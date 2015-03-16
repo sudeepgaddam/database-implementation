@@ -101,7 +101,7 @@ int Pipe :: Remove (Record *removeMe) {
 			return 0;
 		}
 
-		//cout<< "Pipe.Remove() cond_wait! Start" << endl;
+	//	cout<< "Pipe.Remove() cond_wait! Start" << endl;
 
 		// wait until there is something there
 		pthread_cond_wait (&consumerVar, &pipeMutex);

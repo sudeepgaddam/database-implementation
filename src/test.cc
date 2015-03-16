@@ -1,9 +1,13 @@
 #include "test.h"
 #include "BigQ.h"
 #include <pthread.h>
+#include <unistd.h>
+#include <time.h>
+
 void test1 ();
 void test2 ();
 void test3 ();
+using namespace std;
 
 int add_data (FILE *src, int numrecs, int &res) {
 	DBFile dbfile;
@@ -20,7 +24,7 @@ int add_data (FILE *src, int numrecs, int &res) {
 		if (proc % xx == 0) cerr << ".";
 	}
 	//dbfile.DumpWriteBuffer();
-	dbfile.Close ();
+    	dbfile.Close ();
 	return proc;
 }
 

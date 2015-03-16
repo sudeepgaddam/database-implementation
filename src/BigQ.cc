@@ -60,13 +60,14 @@ void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe *outpipe, int filec
 	cout << "phasetwo-filecounter: " << filecounter << endl;
 	if(filecounter==1) fpath = tmppath0;
 	else fpath = tmppath1;
-	infile->Open(fpath);
+	//infile->Open(fpath);
 	infile->MoveFirst();
 
 	cout << "phasetwo-fpath: " << fpath << endl;
 
 	off_t whichpages[num_buffers];
 
+	int outpiperecs = 0;
 	cout << "***** start inserting records into priority queue " << endl;
 	for(int i=0; i<num_buffers; i++){
 		
@@ -79,6 +80,7 @@ void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe *outpipe, int filec
 			cout << "ERROR: Not able to read page" << endl;
 			continue;
 		}
+		cout << "mpage recs: " << m_page->GetNumRecs() << endl;
 		if(m_page->GetNumRecs() <=0) continue;
 		
 		buffers.push_back(*m_page); 
@@ -133,6 +135,7 @@ void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe *outpipe, int filec
 		if(outbuffersize==PAGE_SIZE){ 
 			for(int i=0; i<outbuffer.size();i++){
 				//outfile->Add(outbuffer[i]);
+				outpiperecs++;
 				outpipe->Insert(&outbuffer[i]);
 			}
 			outbuffersize = 0;
@@ -164,19 +167,20 @@ void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe *outpipe, int filec
 			//cout <<" 4. initial right length: " << buffers[bufferindex].RightLength() << endl;
 			pq.push(tempInfo);
 		}
-		
+		//cout << "pq.size(): " << pq.size() << endl;
 		if(pq.size()==1){
 			one_buffer_left = 1;
 			//flush output buffer records even if it is not full - since we are done with all runs
 			for(int i=0; i<outbuffer.size();i++){
 				//outfile->Add(outbuffer[i]);
+				outpiperecs++;
 				outpipe->Insert(&outbuffer[i]);
 			}
 			outbuffer.clear();
 		}
 	}
 
-	cout << "***** Processing last sorted run " << endl;
+	cout << "***** Processing last sorted run one_buffer_left: " << one_buffer_left << endl;
 
 	if(one_buffer_left){
 		//flush priority que record into out file		
@@ -185,14 +189,16 @@ void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe *outpipe, int filec
 		int bufferindex = tempInfo.bufferId;
 		//tempInfo.rec->Print(schema);
 		//outfile->Add(*tempInfo.rec);
+		outpiperecs++;
 		outpipe->Insert(tempInfo.rec);
 		//flush all buffer records into outfile		
 		while(true){
 			tempInfo.rec = new Record();
 			if(buffers[bufferindex].GetFirst(tempInfo.rec)){	//replaced GetCurrent	//need to break into small functions !!
-				cout << "Add buffer record into file" << endl;
+				//cout << "Add buffer record into file" << endl;
 				//tempInfo.rec->Print(schema);
 				//outfile->Add(*tempInfo.rec);
+				outpiperecs++;
 				outpipe->Insert(tempInfo.rec);
 			}else{
 				cout << "End of last buffer!!" << endl;
@@ -208,14 +214,15 @@ void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe *outpipe, int filec
 			while(buffers[bufferindex].GetFirst(rec)){   //replaced GetCurrent
 				//rec->Print(schema);
 				//outfile->Add(*rec);
-				cout << "Dump records into outpipe" << endl;
+				//cout << "Dump records into outpipe" << endl;
+				outpiperecs++;
 				outpipe->Insert(rec);
 			}
 			whichpages[bufferindex]++;
 		}
 
 	}
-	cout << "***** Success!! Phase Two Ends " << endl;
+	cout << "***** Success!! Phase Two Ends outpiperecs: " << outpiperecs << endl;
 
 	infile->Close();
 	remove(foutpath);
@@ -314,11 +321,11 @@ BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
         	tempFile.Add(vrec[i]);
 	}
 	vrec.clear();
-	int tempFile_currlen = tempFile.Close();
+	//int tempFile_currlen = tempFile.Close();
 
 	cout << "***** Success!! Phase one ends with runs=qsortcount: " << runcount << endl;
 	cout << "***** Infile Records: " << counter << endl;
-	cout << "***** Infile curlen: " << tempFile_currlen << endl;
+	//cout << "***** Infile curlen: " << tempFile_currlen << endl;
 
 	phasetwo(runcount, runlen, &tempFile, &out, filecounter);
 	
@@ -328,7 +335,7 @@ BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
 
     	// finally shut down the out pipe
 	out.ShutDown ();
-
+	cout << "Bigq() out pipe addess: "<<&out <<endl;
 	cout << "=============== end  TPMMS ===============" << endl;
 	cout << endl;
 	cout << endl;

@@ -207,6 +207,7 @@ void Page :: FromBinary (char *bits) {
 }
 
 File :: File () {
+	curLength = 0;
 }
 
 File :: ~File () {
