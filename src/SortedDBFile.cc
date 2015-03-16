@@ -98,7 +98,7 @@ void SortedDBFile::Add (Record &rec) {
 		SwitchMode();
 	}
 	in->Insert(&rec);
-	cout <<"addcount: " << ++addcount << endl;
+	//cout <<"addcount: " << ++addcount << endl;
 	/*
 	int ret;
     	ret = write_page->Append(&rec); 
@@ -377,7 +377,7 @@ void SortedDBFile::Merge(){
 	if(!fileEmpty){
 	
 		Pipe *in1;
-    		Pipe *out1;
+    	Pipe *out1;
 		bigq_util* util1;
 		pthread_t second_bigq_thread;
 		in1 = new  (std::nothrow) Pipe(PIPE_BUFFER);
@@ -399,6 +399,7 @@ void SortedDBFile::Merge(){
 			heapDB->Add(piperec);
 			outpiperecs++;
 		}
+		heapDB->FlushWritePage();
 		cout << "FirstBigQ outpiperecs: " << outpiperecs << endl;
 		
 
@@ -423,14 +424,14 @@ void SortedDBFile::Merge(){
 			tempFile->Add(sortedrec);
 			filereccount++;
 		}		
+		tempFile->FlushWritePage();
 		cout << "Sorted out record count: " << filereccount << endl;
 		
-		sleep(5);
 		
-				delete heapDB;
-				//Rename tmp file
-				rename(a,fpath);
-				heapDB = tempFile;
+		delete heapDB;
+		//Rename tmp fill
+		rename(a,fpath);
+		heapDB = tempFile;
 
 	}else{
 		cout <<"DumpSortedOutPipeContents into originalheapfile Start!" << endl;
@@ -440,6 +441,7 @@ void SortedDBFile::Merge(){
 			  heapDB->Add(piperec);
 			  reccount++;
 		}
+		heapDB->FlushWritePage();
 		cout << "merge()  removed record count from out pipe " <<reccount<<endl;
 	//	DumpWriteBuffer();
 

@@ -42,6 +42,15 @@ void HeapDBFile::Add (Record &rec) {
     }
 }
 
+void HeapDBFile::FlushWritePage () {
+		int currlen = heapfile->GetLength();
+
+	int whichpage = currlen==0?0:currlen-1;
+	heapfile->AddPage(write_page, whichpage);
+	
+	
+}
+
 void HeapDBFile::Load (Schema &f_schema, char *loadpath) {
     Record temp_rec;
 
