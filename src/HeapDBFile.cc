@@ -176,7 +176,7 @@ int HeapDBFile:: GetPage (Page *putItHere, off_t whichPage) {
 	if (whichPage < heapfile->GetLength()-1) {
 		return heapfile->GetPage(putItHere, whichPage);
 	}
-	else if(whichPage <= heapfile->GetLength()){
+	else if(whichPage == heapfile->GetLength()){
 		heapfile->AddPage(write_page, cur_page);
                 write_page->EmptyItOut();
 		return heapfile->GetPage(putItHere, whichPage);

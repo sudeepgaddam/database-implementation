@@ -476,3 +476,6 @@ void SortedDBFile::SwitchMode() {
 	}
 }
 
+void SortedDBFile::FlushWritePage(){
+}
+

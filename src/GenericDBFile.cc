@@ -49,3 +49,6 @@ int GenericDBFile:: GetPage (Page *putItHere, off_t whichPage) {
 
 void GenericDBFile::DumpWriteBuffer(){
 }
+
+void GenericDBFile::FlushWritePage(){
+}

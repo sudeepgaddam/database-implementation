@@ -321,6 +321,9 @@ BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
         	tempFile.Add(vrec[i]);
 	}
 	vrec.clear();
+	if(vsize > 0) {
+		tempFile.FlushWritePage ();
+	}
 	//int tempFile_currlen = tempFile.Close();
 
 	cout << "***** Success!! Phase one ends with runs=qsortcount: " << runcount << endl;

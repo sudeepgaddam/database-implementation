@@ -58,6 +58,7 @@ public:
 
 	bool isEmpty();
 	void DumpWriteBuffer();
+	
 };
 #endif
 

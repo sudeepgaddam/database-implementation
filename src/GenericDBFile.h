@@ -50,6 +50,8 @@ virtual	int GetPage (Page *putItHere, off_t whichPage);
 	//void AddPage(Page *srcPage);
 
 virtual void DumpWriteBuffer();
+
+virtual void FlushWritePage();
 	
 };
 #endif

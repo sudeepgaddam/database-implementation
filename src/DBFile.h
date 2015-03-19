@@ -51,6 +51,8 @@ public:
 	//void AddPage(Page *srcPage);
 
 	void DumpWriteBuffer();
+
+	void FlushWritePage();
 	
 };
 #endif

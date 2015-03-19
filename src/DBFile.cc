@@ -90,4 +90,8 @@ void DBFile::DumpWriteBuffer(){
 	gendbfile->DumpWriteBuffer();
 }
 
+void DBFile::FlushWritePage(){
+	gendbfile->FlushWritePage();
+}
+
 

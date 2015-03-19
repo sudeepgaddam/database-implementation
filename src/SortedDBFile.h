@@ -98,6 +98,8 @@ public:
 
 	int AddToOutPipeFile(Record &rec);	
 
+	void FlushWritePage();
+
 	
 };
 
