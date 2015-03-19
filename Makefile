@@ -29,6 +29,14 @@ test: Record.o Comparison.o ComparisonEngine.o Schema.o File.o GenericDBFile.o S
 	$(CC) -pthread -o test Record.o Comparison.o ComparisonEngine.o Schema.o File.o GenericDBFile.o SortedDBFile.o HeapDBFile.o DBFile.o BigQ.o Pipe.o y.tab.o lex.yy.o test.o -lfl
 	mv *.o $(BIN_DIR)
 	mv test $(BIN_DIR)
+
+
+test2_2: Record.o Comparison.o ComparisonEngine.o Schema.o File.o GenericDBFile.o SortedDBFile.o HeapDBFile.o DBFile.o BigQ.o Pipe.o y.tab.o lex.yy.o test.o
+	$(CC) -pthread -o test Record.o Comparison.o ComparisonEngine.o Schema.o File.o GenericDBFile.o SortedDBFile.o HeapDBFile.o DBFile.o BigQ.o Pipe.o y.tab.o lex.yy.o test2_2.o -lfl
+	mv *.o $(BIN_DIR)
+	mv test $(BIN_DIR)
+
+
 testold: Record.o Comparison.o ComparisonEngine.o Schema.o File.o GenericDBFile.o SortedDBFile.o HeapDBFile.o DBFile.o BigQ.o Pipe.o y.tab.o lex.yy.o test_old.o
 	$(CC) -pthread -o testold Record.o Comparison.o ComparisonEngine.o Schema.o File.o GenericDBFile.o SortedDBFile.o HeapDBFile.o DBFile.o BigQ.o Pipe.o y.tab.o lex.yy.o test_old.o -lfl
 	mv *.o $(BIN_DIR)
@@ -41,6 +49,9 @@ main: Record.o Comparison.o ComparisonEngine.o Schema.o File.o BigQ.o DBFile.o P
 test_old.o: 
 	$(DD) -g -c $(SRC_DIR)/test_old.cc
 	
+test2_2.o: 
+	$(DD) -g -c $(SRC_DIR)/test2_2.cc
+
 test.o: 
 	$(DD) -g -c $(SRC_DIR)/test.cc
 
