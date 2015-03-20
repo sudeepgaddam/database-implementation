@@ -1,7 +1,7 @@
  
 %{
 
-	#include "ParseFunc.h" 
+	#include "src/ParseFunc.h" 
 	#include <stdio.h>
 	#include <string.h>
 	#include <stdlib.h>

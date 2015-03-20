@@ -25,8 +25,8 @@ sampletest.out: libgtest.a
 	mv *.o $(BIN_DIR)
 
 
-test: Record.o Comparison.o ComparisonEngine.o Schema.o File.o GenericDBFile.o SortedDBFile.o HeapDBFile.o DBFile.o BigQ.o Pipe.o y.tab.o lex.yy.o test.o
-	$(CC) -pthread -o test Record.o Comparison.o ComparisonEngine.o Schema.o File.o GenericDBFile.o SortedDBFile.o HeapDBFile.o DBFile.o BigQ.o Pipe.o y.tab.o lex.yy.o test.o -lfl
+test: Record.o Comparison.o ComparisonEngine.o Schema.o File.o GenericDBFile.o SortedDBFile.o HeapDBFile.o DBFile.o BigQ.o Pipe.o Function.o RelOp.o y.tab.o yyfunc.tab.o lex.yy.o lex.yyfunc.o test.o
+	$(CC) -pthread -o test Record.o Comparison.o ComparisonEngine.o Schema.o File.o GenericDBFile.o SortedDBFile.o HeapDBFile.o DBFile.o BigQ.o Pipe.o Function.o RelOp.o y.tab.o yyfunc.tab.o lex.yy.o lex.yyfunc.o test.o -lfl
 	mv *.o $(BIN_DIR)
 	mv test $(BIN_DIR)
 
@@ -96,19 +96,40 @@ Record.o: $(SRC_DIR)/Record.cc
 Schema.o: $(SRC_DIR)/Schema.cc
 	$(CC) -g -c $(SRC_DIR)/Schema.cc
 	
+	
+RelOp.o: $(SRC_DIR)/RelOp.cc
+	$(CC) -g -c $(SRC_DIR)/RelOp.cc
+
+Function.o: $(SRC_DIR)/Function.cc
+	$(CC) -g -c $(SRC_DIR)/Function.cc
+	
 y.tab.o: $(SRC_DIR)/Parser.y
 	yacc -d $(SRC_DIR)/Parser.y
-	sed $(tag) $(SRC_DIR)/y.tab.c -e "s/  __attribute__ ((__unused__))$$/# ifndef __cplusplus\n  __attribute__ ((__unused__));\n# endif/" 
-	g++ -w -c $(SRC_DIR)/y.tab.c
-	mv y.tab.c $(SRC_DIR)
-	mv y.tab.h $(SRC_DIR)
+	#sed $(tag) $(SRC_DIR)/y.tab.c -e "s/  __attribute__ ((__unused__))$$/# ifndef __cplusplus\n  __attribute__ ((__unused__));\n# endif/" 
+	g++ -w -c y.tab.c
+
+
+yyfunc.tab.o: $(SRC_DIR)/ParserFunc.y
+	yacc -p "yyfunc" -b "yyfunc" -d $(SRC_DIR)/ParserFunc.y
+	#sed $(tag) yyfunc.tab.c -e "s/  __attribute__ ((__unused__))$$/# ifndef __cplusplus\n  __attribute__ ((__unused__));\n# endif/" 
+	g++ -c yyfunc.tab.c
 
 lex.yy.o: $(SRC_DIR)/Lexer.l
 	lex  $(SRC_DIR)/Lexer.l
-	gcc  -c $(SRC_DIR)/lex.yy.c
-	mv lex.yy.c $(SRC_DIR)
+	gcc  -c lex.yy.c -o lex.yy.o
 
+lex.yyfunc.o: $(SRC_DIR)/LexerFunc.l
+	lex -Pyyfunc $(SRC_DIR)/LexerFunc.l
+	gcc  -c lex.yyfunc.c -o lex.yyfunc.o
+
+	
 clean: 
+	rm -f y.tab.c
+	rm -f lex.yy.c
+	rm -f yyfunc.tab.c
+	rm -f lex.yyfunc.c
+	rm -f y.tab.h
+	rm -f yyfunc.tab.h
 	rm -f $(BIN_DIR)/*.o
 	rm -f $(BIN_DIR)/*.out
 	rm -f $(BIN_DIR)/*.bin

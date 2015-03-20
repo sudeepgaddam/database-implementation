@@ -7,7 +7,7 @@
 #include <fcntl.h>
 
 #include "Defs.h"
-#include "ParseTree.h"
+#include "ParseFunc.h"
 #include "Record.h"
 #include "Schema.h"
 #include "File.h"
@@ -28,11 +28,12 @@ friend class ComparisonEngine;
 friend class Page;
 
 private:
-	char *bits;
+
 	char* GetBits ();
 	void SetBits (char *bits);
 	void CopyBits(char *bits, int b_len);
 public:
+	char *bits;
 	Record ();
 	~Record();
 	
@@ -73,6 +74,8 @@ public:
 	// prints the contents of the record; this requires
 	// that the schema also be given so that the record can be interpreted
 	void Print (Schema *mySchema);
+
+	int ComposeRecord (Schema *mySchema, const char *src);
 
 	void Print();
 

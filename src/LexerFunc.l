@@ -11,14 +11,15 @@
 #include <string.h> // For strdup()
 #include <stdlib.h> // For malloc()
 #include "src/ParseFunc.h"
-#include "y.tab.h"
+#include "yyfunc.tab.h"
 
-int lineno = 1;
-void yyerror(char*s);
+//int yyfunclineno = 1;
+void yyfuncerror(char*s);
 
-static YY_BUFFER_STATE yylex_buf_state;
-void init_lexical_parser (char *src) { yylex_buf_state = yy_scan_string (src); }
-void close_lexical_parser () { yy_delete_buffer (yylex_buf_state); }
+static YY_BUFFER_STATE yyfunc_buf_state;
+void init_lexical_parser_func (char *src) { yyfunc_buf_state = yyfunc_scan_string (src); }
+void close_lexical_parser_func () { yyfunc_delete_buffer (yyfunc_buf_state); }
+
 
 %}
 
@@ -51,35 +52,31 @@ void close_lexical_parser () { yy_delete_buffer (yylex_buf_state); }
 
 "*"    	        	return('*');
 
--?[0-9]+ 	       {yylval.actualChars = strdup(yytext);
+-?[0-9]+ 	       {yyfunclval.actualChars = strdup(yyfunctext);
   			return(Int); 
 		        }
 
--?[0-9]+\.[0-9]*       {yylval.actualChars = strdup(yytext); 
+-?[0-9]+\.[0-9]*       {yyfunclval.actualChars = strdup(yyfunctext); 
   			return(Float);
 			}
 
-[A-Za-z][A-Za-z0-9_-]* {yylval.actualChars = strdup(yytext);
+[A-Za-z][A-Za-z0-9_-]* {yyfunclval.actualChars = strdup(yyfunctext);
   			return(Name);
 			}     
 
-"OR"      		return(OR);
-
-"AND"			return(AND);
-
-\n                	lineno++;
+\n                	yyfunclineno++;
 
 [ \t]             	;
 
-.                 	yyerror("LEX_ERROR: invalid character");
+.                 	yyfuncerror("LEX_ERROR: invalid character");
 
 %%
 
-void yyerror(char *s) {
-  printf("%d: %s at %s\n", lineno, s, yytext);
+void yyfuncerror(char *s) {
+  printf("%d: %s at %s\n", yyfunclineno, s, yyfunctext);
 }
 
-int yywrap(void){
+int yyfuncwrap(void){
   return 1;
 }
 
