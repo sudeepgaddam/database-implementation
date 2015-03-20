@@ -21,6 +21,14 @@ typedef struct {
 	Record *literal;
 } spipe_util;
 
+typedef struct {
+	Pipe *inpipe;
+	Pipe *outpipe;
+	int *keepMe;
+	int numAttsInput;
+	int numAttsOutput;
+} proj_util;
+
 class RelationalOp {
 	public:
 	// blocks the caller until the particular relational operator 
@@ -56,10 +64,17 @@ class SelectPipe : public RelationalOp {
 	void Use_n_Pages (int n);
 };
 class Project : public RelationalOp { 
+	
+	private:
+	 pthread_t thread;
+	 
+	 
+	 
 	public:
-	void Run (Pipe &inPipe, Pipe &outPipe, int *keepMe, int numAttsInput, int numAttsOutput) { }
-	void WaitUntilDone () { }
-	void Use_n_Pages (int n) { }
+	void Run (Pipe &inPipe, Pipe &outPipe, int *keepMe, int numAttsInput, int numAttsOutput);
+	void WaitUntilDone () ;
+	void Use_n_Pages (int n) ;
+	
 };
 class Join : public RelationalOp { 
 	public:

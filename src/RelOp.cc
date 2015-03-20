@@ -73,3 +73,44 @@ void SelectPipe::WaitUntilDone () {
 void SelectPipe::Use_n_Pages (int runlen) {
 
 }
+
+/* Project Methods */
+
+void *project_run (void *arg) {
+	Record rec;
+	ComparisonEngine comp;
+	proj_util *putil = (proj_util *)arg; 
+	Pipe *inPipe = putil->inpipe;
+	Pipe *outPipe = putil->outpipe;
+	int *keepMe = putil->keepMe;
+	int numAttsInput = putil->numAttsInput;
+	int numAttsOutput = putil->numAttsOutput;
+	
+	while(inPipe->Remove(&rec)) {
+		rec.Print();
+		rec.Project(keepMe, numAttsOutput, numAttsInput); 
+		outPipe->Insert(&rec);
+	}
+
+	outPipe->ShutDown();
+
+}
+
+void Project::Run (Pipe &inPipe, Pipe &outPipe, int *keepMe, int numAttsInput, int numAttsOutput) {
+	proj_util *putil = new proj_util();
+	putil->inpipe = &inPipe;
+	putil->outpipe = &outPipe;
+	putil->keepMe = keepMe;
+	putil->numAttsInput = numAttsInput;
+	putil->numAttsOutput = numAttsOutput;
+	pthread_create (&thread, NULL, project_run, (void *)putil);
+
+}
+
+void Project::WaitUntilDone () {
+	pthread_join (thread, NULL);
+}
+
+void Project::Use_n_Pages (int runlen) {
+
+}

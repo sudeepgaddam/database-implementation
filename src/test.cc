@@ -65,6 +65,10 @@ void init_SF_ps (char *pred_str, int numpgs) {
 }
 
 void init_SF_p (char *pred_str, int numpgs) {
+	char tbl_path[20] = "tpc-h/part.tbl";
+	dbf_p.Create(p->path(), heap, NULL);
+	dbf_p.Load(*(p->schema()),tbl_path);
+	dbf_p.MoveFirst();
 	dbf_p.Open (p->path());
 	get_cnf (pred_str, p->schema (), cnf_p, lit_p);
 	SF_p.Use_n_Pages (numpgs);
@@ -135,7 +139,8 @@ void q1 () {
 // expected output: 22 records
 void q2 () {
 
-	char *pred_p = "(p_retailprice > 931.01) AND (p_retailprice < 931.3)";
+	//char *pred_p = "(p_retailprice > 931.01) AND (p_retailprice < 931.3)";
+	char *pred_p = "(p_retailprice > 931.01)";
 	init_SF_p (pred_p, 100);
 
 	Project P_p;
@@ -148,12 +153,13 @@ void q2 () {
 	SF_p.Run (dbf_p, _p, cnf_p, lit_p);
 	P_p.Run (_p, _out, keepMe, numAttsIn, numAttsOut);
 
+	int cnt = clear_pipe (_out, p->schema (), true);
+	
 	SF_p.WaitUntilDone ();
 	P_p.WaitUntilDone ();
 
 	Attribute att3[] = {IA, SA, DA};
 	Schema out_sch ("out_sch", numAttsOut, att3);
-	int cnt = clear_pipe (_p, p->schema (), true);
 
 	cout << "\n\n query2 returned " << cnt << " records \n";
 
