@@ -55,6 +55,10 @@ int nAtts = 4;
 int rAtts = 3;
 
 void init_SF_ps (char *pred_str, int numpgs) {
+	char tbl_path[20] = "tpc-h/partsupp.tbl";
+	dbf_ps.Create(ps->path(), heap, NULL);
+	dbf_ps.Load(*(ps->schema()),tbl_path);
+	dbf_ps.MoveFirst();
 	dbf_ps.Open (ps->path());
 	get_cnf (pred_str, ps->schema (), cnf_ps, lit_ps);
 	SF_ps.Use_n_Pages (numpgs);
@@ -92,20 +96,40 @@ void init_SF_c (char *pred_str, int numpgs) {
 
 // select * from partsupp where ps_supplycost <1.03 
 // expected output: 31 records
-void q1 () {
+void q0 () {
 
-	char *pred_ps = "(ps_supplycost < 1.03)";
+	char *pred_ps = "(ps_supplycost < 100.0)";
 	init_SF_ps (pred_ps, 100);
 
 	SF_ps.Run (dbf_ps, _ps, cnf_ps, lit_ps);
-	SF_ps.WaitUntilDone ();
 
 	int cnt = clear_pipe (_ps, ps->schema (), true);
+	
+	SF_ps.WaitUntilDone ();
+
 	cout << "\n\n query1 returned " << cnt << " records \n";
 
 	dbf_ps.Close ();
 }
 
+
+// select * from partsupp where ps_supplycost <1.03 
+// expected output: 31 records
+void q1 () {
+
+	char *pred_ps = "(ps_supplycost < 100.0)";
+	init_SF_ps (pred_ps, 100);
+
+	SF_ps.Run (dbf_ps, _ps, cnf_ps, lit_ps);
+
+	int cnt = clear_pipe (_ps, ps->schema (), true);
+	
+	SF_ps.WaitUntilDone ();
+
+	cout << "\n\n query1 returned " << cnt << " records \n";
+
+	dbf_ps.Close ();
+}
 
 // select p_partkey(0), p_name(1), p_retailprice(7) from part where (p_retailprice > 931.01) AND (p_retailprice < 931.3);
 // expected output: 22 records

@@ -18,7 +18,7 @@ char *tpch_dir ="tpc-h/";
 
 // test settings file should have the 
 // catalog_path, dbfile_dir and tpch_dir information in separate lines
-const char *settings = "test.cat";
+const char *settings = "src/test.cat";
 
 
 

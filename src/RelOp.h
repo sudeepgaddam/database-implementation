@@ -6,6 +6,21 @@
 #include "Record.h"
 #include "Function.h"
 
+
+typedef struct {
+	DBFile *inFile;
+	Pipe *outpipe;
+	CNF *selOp;
+	Record *literal;
+} sfile_util;
+
+typedef struct {
+	Pipe *inpipe;
+	Pipe *outpipe;
+	CNF *selOp;
+	Record *literal;
+} spipe_util;
+
 class RelationalOp {
 	public:
 	// blocks the caller until the particular relational operator 
@@ -19,7 +34,7 @@ class RelationalOp {
 class SelectFile : public RelationalOp { 
 
 	private:
-	// pthread_t thread;
+	 pthread_t thread;
 	// Record *buffer;
 
 	public:
@@ -31,10 +46,14 @@ class SelectFile : public RelationalOp {
 };
 
 class SelectPipe : public RelationalOp {
+	private:
+	pthread_t thread;
+	// Record *buffer;
+
 	public:
-	void Run (Pipe &inPipe, Pipe &outPipe, CNF &selOp, Record &literal) { }
-	void WaitUntilDone () { }
-	void Use_n_Pages (int n) { }
+	void Run (Pipe &inPipe, Pipe &outPipe, CNF &selOp, Record &literal);
+	void WaitUntilDone ();
+	void Use_n_Pages (int n);
 };
 class Project : public RelationalOp { 
 	public:

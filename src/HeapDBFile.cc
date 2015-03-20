@@ -61,6 +61,7 @@ void HeapDBFile::Load (Schema &f_schema, char *loadpath) {
         	Add(temp_rec);
     	}
     }
+    FlushWritePage();
     #if 0
         Page rPage;
         Record rRec;
