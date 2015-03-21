@@ -2,6 +2,8 @@
 #define RECORD_H
 
 #include <stdio.h>
+#include <stdlib.h>
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -74,6 +76,10 @@ public:
 	// prints the contents of the record; this requires
 	// that the schema also be given so that the record can be interpreted
 	void Print (Schema *mySchema);
+	
+	// prints the contents of the record into file
+	//this requires that the schema also be given so that the record can be interpreted
+	void FilePrint (FILE *fp, Schema *mySchema);
 
 	int ComposeRecord (Schema *mySchema, const char *src);
 

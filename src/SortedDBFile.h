@@ -38,8 +38,8 @@ private:
 	Mode mode;
 
 	Pipe *in;
-    	Pipe *out;
-    	OrderMaker *myOrder;
+    Pipe *out;
+    OrderMaker *myOrder;
 	int runLength;
 	HeapDBFile *heapDB;
 	bigq_util* util;

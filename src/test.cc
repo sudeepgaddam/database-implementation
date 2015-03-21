@@ -75,6 +75,10 @@ void init_SF_p (char *pred_str, int numpgs) {
 }
 
 void init_SF_s (char *pred_str, int numpgs) {
+	char tbl_path[20] = "tpc-h/supplier.tbl";
+	dbf_s.Create(s->path(), heap, NULL);
+	dbf_s.Load(*(s->schema()),tbl_path);
+	dbf_s.MoveFirst();
 	dbf_s.Open (s->path());
 	get_cnf (pred_str, s->schema (), cnf_s, lit_s);
 	SF_s.Use_n_Pages (numpgs);
@@ -139,8 +143,8 @@ void q1 () {
 // expected output: 22 records
 void q2 () {
 
-	//char *pred_p = "(p_retailprice > 931.01) AND (p_retailprice < 931.3)";
-	char *pred_p = "(p_retailprice > 931.01)";
+	char *pred_p = "(p_retailprice > 931.01) AND (p_retailprice < 931.3)";
+	//char *pred_p = "(p_retailprice > 931.01)";
 	init_SF_p (pred_p, 100);
 
 	Project P_p;
@@ -152,16 +156,23 @@ void q2 () {
 
 	SF_p.Run (dbf_p, _p, cnf_p, lit_p);
 	P_p.Run (_p, _out, keepMe, numAttsIn, numAttsOut);
+	
+	Attribute att3[] = {IA, SA, DA};
+	Schema out_sch ("out_sch", numAttsOut, att3);
+	
+	WriteOut W;
+	// inpipe = ___ps
+	char *fwpath = "ps.w.tmp";
+	FILE *writefile = fopen (fwpath, "w");
+	W.Run (_out, writefile, out_sch);
 
-	int cnt = clear_pipe (_out, p->schema (), true);
+	//int cnt = clear_pipe (_out, &out_sch, true);
 	
 	SF_p.WaitUntilDone ();
 	P_p.WaitUntilDone ();
+	W.WaitUntilDone ();
 
-	Attribute att3[] = {IA, SA, DA};
-	Schema out_sch ("out_sch", numAttsOut, att3);
-
-	cout << "\n\n query2 returned " << cnt << " records \n";
+	//cout << "\n\n query2 returned " << cnt << " records \n";
 
 	dbf_p.Close ();
 }
@@ -170,7 +181,7 @@ void q2 () {
 // expected output: 9.24623e+07
 void q3 () {
 
-	char *pred_s = "(s_suppkey = s_suppkey)";
+	char *pred_s = "(s_suppkey)";
 	init_SF_s (pred_s, 100);
 
 	Sum T;
@@ -269,7 +280,7 @@ void q5 () {
 		FILE *writefile = fopen (fwpath, "w");
 
 	SF_ps.Run (dbf_ps, _ps, cnf_ps, lit_ps);
-	P_ps.Run (_ps, __ps, keepMe, numAttsIn, numAttsOut);
+	P_ps.Run (_ps, ___ps, keepMe, numAttsIn, numAttsOut);
 	D.Run (__ps, ___ps,__ps_sch);
 	W.Run (___ps, writefile, __ps_sch);
 

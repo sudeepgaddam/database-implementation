@@ -5,7 +5,7 @@
 #include "DBFile.h"
 #include "Record.h"
 #include "Function.h"
-
+#include "BigQ.h"
 
 typedef struct {
 	DBFile *inFile;
@@ -28,6 +28,24 @@ typedef struct {
 	int numAttsInput;
 	int numAttsOutput;
 } proj_util;
+
+typedef struct {
+	Pipe *inpipe;
+	FILE *outFile;
+	Schema *mySchema;
+} write_util;
+
+typedef struct {
+	Pipe *inpipe;
+	Pipe *outpipe;
+	Schema *mySchema;
+} duprem_util;
+
+typedef struct {
+	Pipe *inpipe;
+	Pipe *outpipe;
+	Function *computeMe;
+} sum_util;
 
 class RelationalOp {
 	public:
@@ -83,27 +101,40 @@ class Join : public RelationalOp {
 	void Use_n_Pages (int n) { }
 };
 class DuplicateRemoval : public RelationalOp {
+	private:
+	 pthread_t thread;
+	 
 	public:
-	void Run (Pipe &inPipe, Pipe &outPipe, Schema &mySchema) { }
-	void WaitUntilDone () { }
-	void Use_n_Pages (int n) { }
+	void Run (Pipe &inPipe, Pipe &outPipe, Schema &mySchema);
+	void WaitUntilDone ();
+	void Use_n_Pages (int n);
 };
 class Sum : public RelationalOp {
+	private:
+	 pthread_t thread;
+	 
 	public:
-	void Run (Pipe &inPipe, Pipe &outPipe, Function &computeMe) { }
-	void WaitUntilDone () { }
-	void Use_n_Pages (int n) { }
+	void Run (Pipe &inPipe, Pipe &outPipe, Function &computeMe);
+	void WaitUntilDone ();
+	void Use_n_Pages (int n);
 };
 class GroupBy : public RelationalOp {
+	private:
+	 pthread_t thread;
+	 
 	public:
 	void Run (Pipe &inPipe, Pipe &outPipe, OrderMaker &groupAtts, Function &computeMe) { }
 	void WaitUntilDone () { }
 	void Use_n_Pages (int n) { }
 };
 class WriteOut : public RelationalOp {
+	
+	private:
+	 pthread_t thread;
+	 
 	public:
-	void Run (Pipe &inPipe, FILE *outFile, Schema &mySchema) { }
-	void WaitUntilDone () { }
-	void Use_n_Pages (int n) { }
+	void Run (Pipe &inPipe, FILE *outFile, Schema &mySchema);
+	void WaitUntilDone ();
+	void Use_n_Pages (int n);
 };
 #endif

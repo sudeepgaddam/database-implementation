@@ -464,6 +464,51 @@ void Record :: MergeRecords (Record *left, Record *right, int numAttsLeft, int n
 	}
 }
 
+void Record :: FilePrint (FILE *fp, Schema *mySchema) {
+	
+	int n = mySchema->GetNumAtts();
+	Attribute *atts = mySchema->GetAtts();
+	
+	// loop through all of the attributes
+	for (int i = 0; i < n; i++) {
+
+		// print the attribute name
+		fprintf(fp,"%s:", atts[i].name);
+
+		// use the i^th slot at the head of the record to get the
+		// offset to the correct attribute in the record
+		int pointer = ((int *) bits)[i + 1];
+
+		// here we determine the type, which given in the schema;
+		// depending on the type we then print out the contents
+		fprintf(fp,"[");
+
+		// first is integer
+		if (atts[i].myType == Int) {
+			int *myInt = (int *) &(bits[pointer]);
+			fprintf(fp, "%d",*myInt);	
+
+		// then is a double
+		} else if (atts[i].myType == Double) {
+			double *myDouble = (double *) &(bits[pointer]);
+			fprintf(fp,"%f",*myDouble);	
+
+		// then is a character string
+		} else if (atts[i].myType == String) {
+			char *myString = (char *) &(bits[pointer]);
+			fprintf(fp, "%s", myString);	
+		} 
+
+		fprintf(fp, "]");
+
+		// print out a comma as needed to make things pretty
+		if (i != n - 1) {
+			fprintf(fp,", ");
+		}
+	}
+
+	fprintf(fp,"\n");
+}
 void Record :: Print (Schema *mySchema) {
 
 	int n = mySchema->GetNumAtts();

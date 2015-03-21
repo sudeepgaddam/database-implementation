@@ -57,6 +57,9 @@ void close_lexical_parser () { yy_delete_buffer (yylex_buf_state); }
 
 "*"    	        	return('*');
 
+
+
+
 -?[0-9]+ 	       {yylval.actualChars = strdup(yytext);
   			return(Int); 
 		        }
@@ -64,14 +67,16 @@ void close_lexical_parser () { yy_delete_buffer (yylex_buf_state); }
 -?[0-9]+\.[0-9]*       {yylval.actualChars = strdup(yytext); 
   			return(Float);
 			}
+			
+"OR"      		return(OR);
+
+"AND"			return(AND);
 
 [A-Za-z][A-Za-z0-9_-]* {yylval.actualChars = strdup(yytext);
   			return(Name);
 			}     
 
-"OR"      		return(OR);
 
-"AND"			return(AND);
 
 \n                	lineno++;
 
