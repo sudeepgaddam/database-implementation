@@ -158,9 +158,21 @@ void *duprem_run (void *arg) {
 	}
 	
 	in1->ShutDown();
-	
+	bool first_time = true;
 	while(out1->Remove(&rec)) {
-		outPipe->Insert(&rec);
+		if (first_time) {
+			//No Previous record to comapare with. Store current as prev_rec for next iteration
+			prev_rec.Copy(&rec);
+			first_time = false;
+		} else {
+			if (!comp.Compare(&rec, &prev_rec, &myOrder)) {
+				//Prev Record same as current
+				//Don't write to outPipe, No need to copy rec to prev_rec
+			} else {	
+				outPipe->Insert(&prev_rec);
+				prev_rec.Copy(&rec);
+			}
+	}
 	}
 	outPipe->ShutDown();
 	pthread_join(bigq_thread, NULL);

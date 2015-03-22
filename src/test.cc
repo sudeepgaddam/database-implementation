@@ -278,6 +278,8 @@ cout << " query4 \n\n SELETE sum (ps_supplycost) \n FROM supplier, partsupp \n W
 // expected output: 9996 rows
 void q5 () {
 
+cout << " query5 \n\n SELETE distinct ps_suppkey \n FROM partsupp \n WHERE ps_supplycost < 100.11 \n\n";
+
 	char *pred_ps = "(ps_supplycost < 100.11)";
 	init_SF_ps (pred_ps, 100);
 
@@ -299,16 +301,19 @@ void q5 () {
 		FILE *writefile = fopen (fwpath, "w");
 
 	SF_ps.Run (dbf_ps, _ps, cnf_ps, lit_ps);
-	P_ps.Run (_ps, ___ps, keepMe, numAttsIn, numAttsOut);
+	P_ps.Run (_ps, __ps, keepMe, numAttsIn, numAttsOut);
 	D.Run (__ps, ___ps,__ps_sch);
 	W.Run (___ps, writefile, __ps_sch);
+
 
 	SF_ps.WaitUntilDone ();
 	P_ps.WaitUntilDone ();
 	D.WaitUntilDone ();
 	W.WaitUntilDone ();
 
-	cout << " query5 finished..output written to file " << fwpath << "\n";
+	cout << " query5 finished..output written to file " << fwpath << "\n (expected output: 9996 rows) \n";
+
+	dbf_ps.Close ();
 }
 // select sum (ps_supplycost) from  partsupp 
 //  groupby ps_availqty;
