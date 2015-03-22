@@ -87,6 +87,8 @@ public:
 
 	// returns the size of record in bytes
 	int GetSize();
+
+	int GetNumAtts();
 };
 
 #endif

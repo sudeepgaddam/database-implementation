@@ -5,6 +5,7 @@
 #include "DBFile.h"
 #include <queue>
 #include <stdio.h>
+#include <string.h>
 
 int BigQ::filecounter = 0;
 
@@ -52,18 +53,10 @@ void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe *outpipe, int filec
 	vector<Page> buffers;
 
 	priority_queue<RecordInfo> pq;  //greater than comparison -> min pq
-
-	char *tmppath0 = "abc0";
-	char *tmppath1 = "abc1";
 	
-	char * fpath;
 	cout << "phasetwo-filecounter: " << filecounter << endl;
-	if(filecounter==1) fpath = tmppath0;
-	else fpath = tmppath1;
-	//infile->Open(fpath);
+	
 	infile->MoveFirst();
-
-	cout << "phasetwo-fpath: " << fpath << endl;
 
 	off_t whichpages[num_buffers];
 
@@ -104,18 +97,24 @@ void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe *outpipe, int filec
 		                
 	}
 
-	char *fout0 = "out0";
-	char *fout1 = "out1";
+	char outfilepath[64] = "phasetwooutfilepath";
+	char filecounter_string[32];
+	sprintf(filecounter_string, "%d", filecounter);
+	strcat(outfilepath, filecounter_string);
+
+	//char *fout0 = "out0";
+	//char *fout1 = "out1";
+	//if(filecounter==1) foutpath = fout0;
+	//else foutpath = fout1;
 	
 	char * foutpath;
-	if(filecounter==1) foutpath = fout0;
-	else foutpath = fout1;
+	foutpath = &outfilepath;
 
 	DBFile* outfile = new DBFile();
 	outfile->Create(foutpath, heap, NULL);
 	outfile->Open(foutpath);
 
-	cout << "***** TPMMS logic starts " << endl;
+	cout << "***** TPMMS logic starts #foutpath: " << foutpath << endl;
 	
 	int outbuffersize = 0;
 	int one_buffer_left = 0;
@@ -249,12 +248,18 @@ BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
     	Schema *schema = pschema;
 	DBFile tempFile;
 
-	char *tmppath0 = "abc0";
-	char *tmppath1 = "abc1";
-	
-	char * fpath;
+	/*char *tmppath0 = "abc0";
+	char *tmppath1 = "abc1";	
 	if(filecounter==1) fpath = tmppath0;
-	else fpath = tmppath1;
+	else fpath = tmppath1;*/
+
+	char infilepath[64] = "BigQInfilepath";
+	char filecounter_string[32];
+	sprintf(filecounter_string, "%d", filecounter);
+	strcat(infilepath, filecounter_string);
+
+	char * fpath;
+	fpath = &infilepath;
 
 	cout << "BigQ.filecounter: " << filecounter << endl;
 	cout << "BigQ.fpath: " << fpath << endl;

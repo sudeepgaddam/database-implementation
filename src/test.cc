@@ -195,11 +195,12 @@ void q3 () {
 	SF_s.Run (dbf_s, _s, cnf_s, lit_s);
 	T.Run (_s, _out, func);
 
-	SF_s.WaitUntilDone ();
-	T.WaitUntilDone ();
+	SF_s.WaitUntilDone ();	
 
 	Schema out_sch ("out_sch", 1, &DA);
 	int cnt = clear_pipe (_out, &out_sch, true);
+
+	T.WaitUntilDone ();
 
 	cout << "\n\n query3 returned " << cnt << " records \n";
 
@@ -242,16 +243,23 @@ void q4 () {
 			func.Print ();
 	T.Use_n_Pages (1);
 
+	cout << "####### RUN SF_ps " << endl;
 	SF_ps.Run (dbf_ps, _ps, cnf_ps, lit_ps); // 161 recs qualified
+	cout << "####### RUN Join " << endl;
 	J.Run (_s, _ps, _s_ps, cnf_p_ps, lit_p_ps);
+	cout << "####### RUN Sum " << endl;
 	T.Run (_s_ps, _out, func);
 
-	SF_ps.WaitUntilDone ();
-	J.WaitUntilDone ();
-	T.WaitUntilDone ();
+	SF_s.WaitUntilDone ();	
+	SF_ps.WaitUntilDone ();	
+	J.WaitUntilDone ();	
 
 	Schema sum_sch ("sum_sch", 1, &DA);
 	int cnt = clear_pipe (_out, &sum_sch, true);
+
+	T.WaitUntilDone ();
+
+	
 	cout << " query4 returned " << cnt << " recs \n";
 }
 

@@ -47,6 +47,15 @@ typedef struct {
 	Function *computeMe;
 } sum_util;
 
+typedef struct {
+	Pipe *inPipeL;
+	Pipe *inPipeR;
+	Pipe *outPipe;
+	CNF *selOp;
+	Record *literal;
+	int RunPages;
+} join_util;
+
 class RelationalOp {
 	public:
 	// blocks the caller until the particular relational operator 
@@ -97,8 +106,9 @@ class Project : public RelationalOp {
 class Join : public RelationalOp { 
 	
 	private:
-	 pthread_t thread;
-	 int RunPages;
+	 	pthread_t thread;
+	 	int RunPages;
+
 	public:
 	void Run (Pipe &inPipeL, Pipe &inPipeR, Pipe &outPipe, CNF &selOp, Record &literal);
 	void WaitUntilDone ();

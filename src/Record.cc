@@ -559,6 +559,12 @@ int Record :: GetSize(){
 	return ((int *) bits)[0];
 }
 
+int Record :: GetNumAtts(){
+	int Att1Start = ((int *) bits)[1];
+	int numAtts = Att1Start/sizeof(int) - 1;
+	return numAtts;
+}
+
 void Record :: Print(){
 	Schema *rschema = new Schema ("data/catalog", "region");
 	Schema *lschema = new Schema ("data/catalog", "lineitem");
