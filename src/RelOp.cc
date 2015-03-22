@@ -309,18 +309,20 @@ void WriteOut::Use_n_Pages (int runlen) {
 		int tmpAtts  = tmp.GetNumAtts();
 		int n = vrecAtts + tmpAtts;
 		int* attsToKeep = new int [n];
+
 		for(int i=0; i < vrecAtts + tmpAtts; i++){
-			if(i < vrecAtts){
+			if(i < tmpAtts){
 				attsToKeep[i] = i;
 			} else{
-				attsToKeep[i] = i - vrecAtts;
+				attsToKeep[i] = i - tmpAtts;
 			}
 		}
 
 		for(int i=0; i<vec.size(); i++){
 			Record vrec = vec[i];
 			Record mergedRec;			
-			mergedRec.MergeRecords(&vrec, &tmp, vrecAtts, tmpAtts, attsToKeep, vrecAtts + tmpAtts, vrecAtts);
+			mergedRec.MergeRecords(&tmp, &vrec, tmpAtts, vrecAtts, attsToKeep, vrecAtts + tmpAtts, tmpAtts);
+			
 			outPipe->Insert(&mergedRec);
 		}
 
@@ -371,8 +373,9 @@ void WriteOut::Use_n_Pages (int runlen) {
 		util2->sort_order=&rightOrder;
 		util2->run_len=RunPages;
 		pthread_create (&right_bigq_thread, NULL,run_bigq, (void*)util2);
-		
-		int countl=0, countr=0;
+
+		cout << "RunPages: " << RunPages << endl;
+		int countl=0, countr=0, recprocessed = 0;
 		//Sort Merge Join
 		while(inPipeL->Remove(&Lrec)) {
 				countl++;//Lrec.Print(5);
@@ -385,7 +388,7 @@ void WriteOut::Use_n_Pages (int runlen) {
 				in2->Insert(&Rrec);
 		}
 		in2->ShutDown();
-		cout<<"Printed Right relation Records #count: "<< countr<<endl;
+		cout<<"Printed Right relation Records #count: "<< countr <<endl;
 
 		//
 		bool out1Empty = false;
@@ -396,7 +399,12 @@ void WriteOut::Use_n_Pages (int runlen) {
 		if(!out2->Remove(&Rrec)){
 			out2Empty = true;
 		}
+		//Lrec.Print(5);
+		//Rrec.Print(3);
 		while( !out1Empty && !out2Empty) {
+			recprocessed++;
+			int compval = comp.Compare(&Lrec, &leftOrder, &Rrec, &rightOrder);
+			//cout << "compval: " << compval << endl;
 			if (comp.Compare(&Lrec, &leftOrder, &Rrec, &rightOrder) <0) {
 				//left < right. GetNext from Left Pipe
 				if(!out1->Remove(&Lrec)){
@@ -410,7 +418,8 @@ void WriteOut::Use_n_Pages (int runlen) {
 				}
 			}else{
 				//left = right
-				Record tmpR = Rrec;
+				Record tmpR;
+				tmpR.Copy(&Rrec);
 				vector<Record> rightRecsV;
 				rightRecsV.push_back(Rrec);
 				while(true){
@@ -430,7 +439,8 @@ void WriteOut::Use_n_Pages (int runlen) {
 					}
 				}
 				cout << "Vector Size" <<rightRecsV.size() <<endl;
-				Record tmpL = Lrec;
+				Record tmpL;
+				tmpL.Copy(&Lrec);
 				joinRecords(tmpL, rightRecsV, outPipe);
 				while(true) {
 					if(!out1Empty){
@@ -451,15 +461,19 @@ void WriteOut::Use_n_Pages (int runlen) {
 					
 				}				
 				rightRecsV.clear();
+				/*if(!out1->Remove(&Lrec)) {
+					out1Empty = true;
+				}*/
+				if(!out2->Remove(&Rrec)){
+					out2Empty = true;
+				}
+				cout << "First Operation done"  <<endl;
 			}
-			if(!out1->Remove(&Lrec)) {
-				out1Empty = true;
-			}
-			if(!out2->Remove(&Rrec)){
-				out2Empty = true;
-			}
-			cout << "First Operation done"  <<endl;
-		}		
+			
+		}
+		cout << "processed recs: " << recprocessed << endl;
+		out1->ShutDown();
+		out2->ShutDown();		
 		outPipe->ShutDown();
 	}
 
