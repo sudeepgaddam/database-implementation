@@ -450,7 +450,7 @@ void WriteOut::Use_n_Pages (int runlen) {
 						break;
 					}
 				}
-				cout << "Vector Size" <<rightRecsV.size() <<endl;
+				//cout << "Vector Size" <<rightRecsV.size() <<endl;
 				Record tmpL;
 				tmpL.Copy(&Lrec);
 				joinRecords(tmpL, rightRecsV, outPipe);
@@ -479,7 +479,7 @@ void WriteOut::Use_n_Pages (int runlen) {
 				if(!out2->Remove(&Rrec)){
 					out2Empty = true;
 				}
-				cout << "First Operation done"  <<endl;
+				//cout << "First Operation done"  <<endl;
 			}
 			
 		}

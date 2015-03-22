@@ -101,7 +101,18 @@ OrderMaker :: OrderMaker(Schema *schema) {
                 }
         }
 }
-
+//Add an attribute to the ordermaker
+int OrderMaker :: Add(int attIndex, Type attType){
+	if( numAtts < MAX_ANDS ){
+		whichAtts[numAtts] = attIndex;			
+		whichTypes[numAtts] = attType;
+		numAtts++;
+	}else{
+		cerr << "ERROR: Can't add attributes, number of attributes in OrderMaker over" << MAX_ANDS;
+		return 0;
+	}		
+	return 1;
+}
 void OrderMaker :: GetAttsList(int AttsList[]) {
 	
 	for (int i=0; i < numAtts; i++) {

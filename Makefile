@@ -133,3 +133,4 @@ clean:
 	rm -f $(BIN_DIR)/*.o
 	rm -f $(BIN_DIR)/*.out
 	rm -f $(BIN_DIR)/*.bin
+	rm -f *filepath*

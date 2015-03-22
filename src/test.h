@@ -14,7 +14,7 @@ using namespace std;
 
 char *catalog_path = "data/catalog"; 
 char *dbfile_dir = "bin/"; 
-char *tpch_dir ="tpc-h/"; 
+char *tpch_dir ="/cise/tmp/dbi_sp11/DATA/1G/";
 
 // test settings file should have the 
 // catalog_path, dbfile_dir and tpch_dir information in separate lines

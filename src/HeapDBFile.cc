@@ -173,7 +173,7 @@ int HeapDBFile::GetNext (Record &fetchme, CNF &cnf, Record &literal) {
 }
 
 int HeapDBFile:: GetPage (Page *putItHere, off_t whichPage) {
-	cout << "heapfile length" << heapfile->GetLength() << endl;;
+	//cout << "heapfile length" << heapfile->GetLength() << endl;;
 	if (whichPage < heapfile->GetLength()-1) {
 		return heapfile->GetPage(putItHere, whichPage);
 	}

@@ -74,7 +74,7 @@ void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe *outpipe, int filec
 			cout << "ERROR: Not able to read page" << endl;
 			continue;
 		}
-		cout << "mpage recs: " << m_page->GetNumRecs() << endl;
+		//cout << "mpage recs: " << m_page->GetNumRecs() << endl;
 		if(m_page->GetNumRecs() <=0) continue;
 		
 		buffers.push_back(*m_page); 
@@ -286,8 +286,8 @@ BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
 		}
 		else{
 			runcount++;
-			cout << "***** One Run Completed. Run count: " << runcount<<endl;
-			cout << "***** " << recordcount << " records present in run: " << runcount << endl;			
+			//cout << "***** One Run Completed. Run count: " << runcount<<endl;
+			//cout << "***** " << recordcount << " records present in run: " << runcount << endl;			
 	
 			qsort((void *) &vrec[0], recordcount-1, sizeof(Record), Compare);
 			
@@ -302,8 +302,8 @@ BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
 		}
 	}
 	
-	cout << "finished reading: recs - " << incounter << endl;
-	cout << "finished reading: runs - " << runcount << endl;
+	//cout << "finished reading: recs - " << incounter << endl;
+	//cout << "finished reading: runs - " << runcount << endl;
 				
 	int vsize = recordcount;//vrec.size();
 	if(vsize >0) { 

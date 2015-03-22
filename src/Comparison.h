@@ -61,7 +61,7 @@ public:
 	// create an OrderMaker that can be used to sort records
 	// based upon ALL of their attributes
 	OrderMaker(Schema *schema);
-
+	int Add(int attIndex, Type attType);
 	// print to the screen
 	void Print ();
 	// print to the metadata File. Useful to know the filetype after closing and re-opening

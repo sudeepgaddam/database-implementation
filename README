@@ -1,4 +1,8 @@
 021008-1308
+TEAM:
+
+SANDEEP DOMMARAJU 	(UFID: 2519 3611)
+SUDEEP REDDY GADDAM	(UFID: 4198 8919)
 
 readme 
 =========
@@ -18,10 +22,10 @@ copy of test driver 1 is included along with this driver. Look at files
 a1-README, and a1-test.cc)
 
 To compile the driver, type
-	make test.out
+	make test
 
 To run the driver, type
-	test.out
+	./bin/test
 and follow the on-screen instructions.
 
 Using the driver:
