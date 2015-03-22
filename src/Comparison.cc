@@ -102,12 +102,12 @@ OrderMaker :: OrderMaker(Schema *schema) {
         }
 }
 
-int * OrderMaker :: GetAttsList() {
-	int *AttsList = new int [MAX_ANDS];
+void OrderMaker :: GetAttsList(int AttsList[]) {
+	
 	for (int i=0; i < numAtts; i++) {
 		AttsList[i] = whichAtts[i];
 	}
-	return AttsList;
+	
 	
 }
 

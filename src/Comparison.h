@@ -44,14 +44,19 @@ class OrderMaker {
 	friend class CNF;
 
 	int numAtts;
+		
+
 
 	int whichAtts[MAX_ANDS];
 	Type whichTypes[MAX_ANDS];
 
 public:
-	
+
+
+
 	// creates an empty OrdermMaker
 	OrderMaker();
+	
 
 	// create an OrderMaker that can be used to sort records
 	// based upon ALL of their attributes
@@ -63,7 +68,7 @@ public:
 	// the dbfile
 	void FilePrint (ofstream &of);
 	void PutFromFile (ifstream &ifs);
-	int *GetAttsList();
+	void GetAttsList(int AttsList[]);
 	int GetNumAtts();
 
 };

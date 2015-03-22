@@ -334,9 +334,10 @@ void q6 () {
 	//int outAtts = sAtts + psAtts;
 	//Attribute s_nationkey = {"s_nationkey", Int};
 	Attribute ps_supplycost = {"ps_supplycost", Double};
+	Attribute ps_partkey = {"ps_partkey", Int};
 	Attribute joinatt[] = {IA};
 	Attribute funcatt[] = {IA,IA,IA,ps_supplycost,SA};
-	Attribute sumatt[] = {DA,IA};
+	Attribute sumatt[] = {DA,ps_partkey};
 
 	Schema groupby_sch ("join_sch", 1, joinatt);
 	Schema func_sch ("func_sch", 5, funcatt);

@@ -502,8 +502,10 @@ void *groupby_run (void *arg) {
 	OrderMaker *groupAtts = gbutil->groupAtts;
 	Function *computeMe = gbutil->computeMe;
 	char buffer[100];
+	int AttsList [MAX_ANDS];
+
+	groupAtts->GetAttsList(AttsList);
 	
-	int *AttsList = groupAtts->GetAttsList();
 	int numAttsToKeep = groupAtts->GetNumAtts();
 	int *NewAttsList = new int[100];
 	//Fill the Atts list needed for the Merged Records
@@ -531,12 +533,16 @@ void *groupby_run (void *arg) {
 			break;
 		
 		}
-		temp = rec;
 		numAttsNow = rec.GetNumAtts();
+		temp.Consume(&rec);
+		//temp.Print(3);
+		
 	}
 	
 	Schema out_sch("sum_schema", 1, &sumAtt);
+	
 	while(inPipe->Remove(&rec)) {
+		
 		computeMe->Apply(rec,intResult,doubleResult);
 		//If compare returns 0, Both the records are equal,
 		//Compute the Sum on all the "Equal Records" Based on the groupAtts 
@@ -564,13 +570,33 @@ void *groupby_run (void *arg) {
 			outPipe->Insert(&MergedRec);
 
 		}
-		temp = rec;
+		temp.Consume(&rec);
 	} //end of while loop
+	/*
+	 * 
+	 * Todo -------------Put this in Function. This Doesn't look Good.
+	 * Put last Grouped record also in the outpipe
+	 */
+		if (sumAtt.myType == Int) {
+				//Write Int as string and compose Record
+				sprintf (buffer, "%d|", intSum);
+				
+				intSum=intResult;
+			} else if (sumAtt.myType == Double) {
+				sprintf (buffer, "%f|", doubleSum);
+				doubleSum = doubleResult;
+			}
+			newRec.ComposeRecord(&out_sch,(const char *) &buffer[0]);
+			temp.Project (AttsList, numAttsToKeep, numAttsNow);
+			MergedRec.MergeRecords (&newRec, &temp, 1, numAttsToKeep, NewAttsList, numAttsToKeep+1, 1);
+			outPipe->Insert(&MergedRec);
+			
+			
 		outPipe->ShutDown();
 
 		free(sumAtt.name);
-		free(AttsList);
-		free(NewAttsList);
+		//delete AttsList;
+		delete NewAttsList;
 }
 
 void GroupBy::Run (Pipe &inPipe, Pipe &outPipe, OrderMaker &groupAtts, Function &computeMe) {
