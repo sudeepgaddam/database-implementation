@@ -102,6 +102,18 @@ OrderMaker :: OrderMaker(Schema *schema) {
         }
 }
 
+int * OrderMaker :: GetAttsList() {
+	int *AttsList = new int [MAX_ANDS];
+	for (int i=0; i < numAtts; i++) {
+		AttsList[i] = whichAtts[i];
+	}
+	return AttsList;
+	
+}
+
+int OrderMaker :: GetNumAtts() {
+		return numAtts;
+}
 
 void OrderMaker :: Print () {
 	printf("NumAtts = %5d\n", numAtts);

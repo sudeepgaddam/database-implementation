@@ -565,12 +565,38 @@ int Record :: GetNumAtts(){
 	return numAtts;
 }
 
-void Record :: Print(){
+void Record :: Print(int n){
+	
 	Schema *rschema = new Schema ("data/catalog", "region");
 	Schema *lschema = new Schema ("data/catalog", "lineitem");
 	Schema *psschema = new Schema ("data/catalog", "partsupp");
 	Schema *pschema = new Schema ("data/catalog", "part");
-	Print(pschema);
+	Schema *sschema = new Schema ("data/catalog", "supplier");
+	
+	switch (n) {
+	case 1:
+		Print(rschema);
+	break;
+	case 2:
+			Print(lschema);
+
+	break;
+	case 3 :
+			Print(psschema);
+
+	break;
+	case 4 :
+			Print(pschema);
+
+	break;
+	case 5 :
+			Print(sschema);
+
+	break;
+	default:
+	break;
+}
+
 }
 
 

@@ -56,7 +56,7 @@ TwoWayList <Type> :: Print(){
 	cout << "address: " << curr << endl;
 	for(int i=0; i<size; i++){
 		cout << "data address: " << curr->data << endl;
-		curr->data->Print();
+		//curr->data->Print(1);
 		curr = curr->next;
 		cout << "address: " << curr << endl;
 	}

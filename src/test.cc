@@ -213,11 +213,12 @@ void q3 () {
 // expected output: 4.00406e+08
 void q4 () {
 
-	cout << " query4 \n";
+cout << " query4 \n\n SELETE sum (ps_supplycost) \n FROM supplier, partsupp \n WHERE s_suppkey = ps_suppkey \n\n";
+
 	char *pred_s = "(s_suppkey = s_suppkey)";
 	init_SF_s (pred_s, 100);
 	SF_s.Run (dbf_s, _s, cnf_s, lit_s); // 10k recs qualified
-
+	// char *pred_ps = "(ps_supplycost < 1.5)";
 	char *pred_ps = "(ps_suppkey = ps_suppkey)";
 	init_SF_ps (pred_ps, 100);
 
@@ -233,6 +234,7 @@ void q4 () {
 	Attribute ps_supplycost = {"ps_supplycost", Double};
 	Attribute joinatt[] = {IA,SA,SA,IA,SA,DA,SA, IA,IA,IA,ps_supplycost,SA};
 	Schema join_sch ("join_sch", outAtts, joinatt);
+	J.Use_n_Pages (buffsz);
 
 	Sum T;
 		// _s (input pipe)
@@ -243,24 +245,33 @@ void q4 () {
 			func.Print ();
 	T.Use_n_Pages (1);
 
-	cout << "####### RUN SF_ps " << endl;
 	SF_ps.Run (dbf_ps, _ps, cnf_ps, lit_ps); // 161 recs qualified
-	cout << "####### RUN Join " << endl;
 	J.Run (_s, _ps, _s_ps, cnf_p_ps, lit_p_ps);
-	cout << "####### RUN Sum " << endl;
-	T.Run (_s_ps, _out, func);
+	//T.Run (_s_ps, _out, func);
+	
+	
+		WriteOut W;
+	// inpipe = ___ps
+	char *fwpath = "jointemp";
+	FILE *writefile = fopen (fwpath, "w");
+	W.Run (_s_ps, writefile, join_sch);
+	
 
-	SF_s.WaitUntilDone ();	
-	SF_ps.WaitUntilDone ();	
-	J.WaitUntilDone ();	
+	SF_s.WaitUntilDone();
+	SF_ps.WaitUntilDone ();
+	J.WaitUntilDone ();
+		W.WaitUntilDone ();
 
+/*
 	Schema sum_sch ("sum_sch", 1, &DA);
 	int cnt = clear_pipe (_out, &sum_sch, true);
+	*/
+		//T.WaitUntilDone ();
 
-	T.WaitUntilDone ();
+	//cout << " query4 returned " << cnt << " rec (expected output: 4.00421e+08) \n";
 
-	
-	cout << " query4 returned " << cnt << " recs \n";
+	dbf_s.Close ();
+	dbf_ps.Close ();
 }
 
 // select distinct ps_suppkey from partsupp where ps_supplycost < 100.11;
@@ -299,7 +310,63 @@ void q5 () {
 
 	cout << " query5 finished..output written to file " << fwpath << "\n";
 }
+// select sum (ps_supplycost) from  partsupp 
+//  groupby ps_availqty;
+// expected output:  rows
+void q6 () {
 
+	cout << " query6 \n";
+	//char *pred_s = "(s_suppkey = s_suppkey)";
+	//init_SF_s (pred_s, 100);
+	//SF_s.Run (dbf_s, _s, cnf_s, lit_s); // 10k recs qualified
+
+	char *pred_ps = "(ps_suppkey = ps_suppkey)";
+	init_SF_ps (pred_ps, 100);
+
+	//Join J;
+		// left _s
+		// right _ps
+		Pipe _s_ps (pipesz);
+		//CNF cnf_p_ps;
+		//Record lit_p_ps;
+		//get_cnf ("(s_suppkey = ps_suppkey)", s->schema(), ps->schema(), cnf_p_ps, lit_p_ps);
+
+	//int outAtts = sAtts + psAtts;
+	//Attribute s_nationkey = {"s_nationkey", Int};
+	Attribute ps_supplycost = {"ps_supplycost", Double};
+	Attribute joinatt[] = {IA};
+	Attribute funcatt[] = {IA,IA,IA,ps_supplycost,SA};
+	Attribute sumatt[] = {DA,IA};
+
+	Schema groupby_sch ("join_sch", 1, joinatt);
+	Schema func_sch ("func_sch", 5, funcatt);
+
+	GroupBy G;
+		// _s (input pipe)
+		Pipe _out (1);
+		Function func;
+			char *str_sum = "(ps_supplycost)";
+			get_cnf (str_sum, &func_sch, func);
+			func.Print ();
+			OrderMaker grp_order (&groupby_sch);
+	G.Use_n_Pages (1);
+
+	SF_ps.Run (dbf_ps, _ps, cnf_ps, lit_ps); // 161 recs qualified
+	//J.Run (_s, _ps, _s_ps, cnf_p_ps, lit_p_ps);
+	G.Run (_ps, _out, grp_order, func);
+
+	//J.WaitUntilDone ();
+
+	Schema sum_sch ("sum_sch", 2, sumatt);
+	int cnt = clear_pipe (_out, &sum_sch, true);
+	SF_ps.WaitUntilDone ();
+
+	G.WaitUntilDone ();
+
+	cout << " query6 returned sum for " << cnt << " groups (expected 25 groups)\n"; 
+}
+
+/* Original q6
 // select sum (ps_supplycost) from supplier, partsupp 
 // where s_suppkey = ps_suppkey groupby s_nationkey;
 // expected output: 25 rows
@@ -349,7 +416,7 @@ void q6 () {
 	int cnt = clear_pipe (_out, &sum_sch, true);
 	cout << " query6 returned sum for " << cnt << " groups (expected 25 groups)\n"; 
 }
-
+*/
 void q7 () { 
 /*
 select sum(ps_supplycost)

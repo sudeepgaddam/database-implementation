@@ -370,25 +370,32 @@ void WriteOut::Use_n_Pages (int runlen) {
 		util2->outpipe=out2;
 		util2->sort_order=&rightOrder;
 		util2->run_len=RunPages;
-		pthread_create (&right_bigq_thread, NULL,run_bigq, (void*)util1);
+		pthread_create (&right_bigq_thread, NULL,run_bigq, (void*)util2);
 		
-		
+		int countl=0, countr=0;
 		//Sort Merge Join
 		while(inPipeL->Remove(&Lrec)) {
+				countl++;//Lrec.Print(5);
 				in1->Insert(&Lrec);
 		}
 		in1->ShutDown();
-		
+		cout<<"Printed Left relation Records #count: " << countl <<endl;
 		while(inPipeR->Remove(&Rrec)) {
+				countr++;//Rrec.Print(3);
 				in2->Insert(&Rrec);
 		}
 		in2->ShutDown();
-		
+		cout<<"Printed Right relation Records #count: "<< countr<<endl;
+
 		//
 		bool out1Empty = false;
 		bool out2Empty = false;
-		out1->Remove(&Lrec);
-		out2->Remove(&Rrec);
+		if(!out1->Remove(&Lrec)) {
+			out1Empty = true;
+		}
+		if(!out2->Remove(&Rrec)){
+			out2Empty = true;
+		}
 		while( !out1Empty && !out2Empty) {
 			if (comp.Compare(&Lrec, &leftOrder, &Rrec, &rightOrder) <0) {
 				//left < right. GetNext from Left Pipe
@@ -422,7 +429,7 @@ void WriteOut::Use_n_Pages (int runlen) {
 						break;
 					}
 				}
-				
+				cout << "Vector Size" <<rightRecsV.size() <<endl;
 				Record tmpL = Lrec;
 				joinRecords(tmpL, rightRecsV, outPipe);
 				while(true) {
@@ -442,10 +449,16 @@ void WriteOut::Use_n_Pages (int runlen) {
 						break;
 					}					
 					
-				}
+				}				
 				rightRecsV.clear();
 			}
-			
+			if(!out1->Remove(&Lrec)) {
+				out1Empty = true;
+			}
+			if(!out2->Remove(&Rrec)){
+				out2Empty = true;
+			}
+			cout << "First Operation done"  <<endl;
 		}		
 		outPipe->ShutDown();
 	}
@@ -471,5 +484,112 @@ void WriteOut::Use_n_Pages (int runlen) {
 			RunPages = n;		
 	}
 
+/* -----------------------------------------------------------------------*/
 
+/*--------------------- GroupBy Methods ----------------------------------*/
+
+void *groupby_run (void *arg) {
+	Record rec;
+	Record temp;
+	int intResult, intSum =0;
+	double doubleResult, doubleSum = 0;
+	Attribute sumAtt;
+	ComparisonEngine comp;
+	Record newRec, MergedRec;
+	groupby_util *gbutil = (groupby_util *)arg; 
+	Pipe *inPipe = gbutil->inPipe;
+	Pipe *outPipe = gbutil->outPipe;
+	OrderMaker *groupAtts = gbutil->groupAtts;
+	Function *computeMe = gbutil->computeMe;
+	char buffer[100];
+	
+	int *AttsList = groupAtts->GetAttsList();
+	int numAttsToKeep = groupAtts->GetNumAtts();
+	int *NewAttsList = new int[100];
+	//Fill the Atts list needed for the Merged Records
+	for (int i=0; i< numAttsToKeep +1; i++) {
+		if (i == 0) {
+			NewAttsList[i] = 0;
+		} else {
+			NewAttsList[i] = AttsList[i-1];
+		}	
+	}
+	
+	
+	int numAttsNow;
+	sumAtt.name = strdup("SUM");
+	if (inPipe->Remove(&rec)) {
+		switch(computeMe->Apply(rec,intResult,doubleResult)) {
+			
+			case Int:
+			  intSum = intResult;
+			  sumAtt.myType = Int;
+			break;
+			case Double:
+			  doubleSum = doubleResult;
+			  sumAtt.myType = Double;
+			break;
+		
+		}
+		temp = rec;
+		numAttsNow = rec.GetNumAtts();
+	}
+	
+	Schema out_sch("sum_schema", 1, &sumAtt);
+	while(inPipe->Remove(&rec)) {
+		computeMe->Apply(rec,intResult,doubleResult);
+		//If compare returns 0, Both the records are equal,
+		//Compute the Sum on all the "Equal Records" Based on the groupAtts 
+		if (!comp.Compare(&temp, &rec, groupAtts)) {
+			if (sumAtt.myType == Int) {
+				intSum+=intResult;
+			} else if (sumAtt.myType == Double) {
+				doubleSum += doubleResult;
+			}
+			
+		} else {
+			//Create a Record
+			if (sumAtt.myType == Int) {
+				//Write Int as string and compose Record
+				sprintf (buffer, "%d|", intSum);
+				
+				intSum=intResult;
+			} else if (sumAtt.myType == Double) {
+				sprintf (buffer, "%f|", doubleSum);
+				doubleSum = doubleResult;
+			}
+			newRec.ComposeRecord(&out_sch,(const char *) &buffer[0]);
+			temp.Project (AttsList, numAttsToKeep, numAttsNow);
+			MergedRec.MergeRecords (&newRec, &temp, 1, numAttsToKeep, NewAttsList, numAttsToKeep+1, 1);
+			outPipe->Insert(&MergedRec);
+
+		}
+		temp = rec;
+	} //end of while loop
+		outPipe->ShutDown();
+
+		free(sumAtt.name);
+		free(AttsList);
+		free(NewAttsList);
+}
+
+void GroupBy::Run (Pipe &inPipe, Pipe &outPipe, OrderMaker &groupAtts, Function &computeMe) {
+	
+	groupby_util *gbutil = new groupby_util();
+	gbutil->inPipe = &inPipe;
+	gbutil->outPipe = &outPipe;
+	gbutil->groupAtts = &groupAtts;
+	gbutil->computeMe = &computeMe;
+	
+	pthread_create (&thread, NULL, groupby_run, (void *)gbutil);
+
+}
+
+void GroupBy::WaitUntilDone () {
+	pthread_join (thread, NULL);
+}
+
+void GroupBy::Use_n_Pages (int runlen) {
+
+}
 

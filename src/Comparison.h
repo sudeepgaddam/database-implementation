@@ -63,6 +63,8 @@ public:
 	// the dbfile
 	void FilePrint (ofstream &of);
 	void PutFromFile (ifstream &ifs);
+	int *GetAttsList();
+	int GetNumAtts();
 
 };
 

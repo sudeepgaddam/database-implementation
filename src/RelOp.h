@@ -55,7 +55,12 @@ typedef struct {
 	Record *literal;
 	int RunPages;
 } join_util;
-
+typedef struct {
+	Pipe *inPipe;
+	Pipe *outPipe;
+	OrderMaker *groupAtts;
+	Function *computeMe;
+} groupby_util;
 class RelationalOp {
 	public:
 	// blocks the caller until the particular relational operator 
@@ -137,9 +142,9 @@ class GroupBy : public RelationalOp {
 	 pthread_t thread;
 	 
 	public:
-	void Run (Pipe &inPipe, Pipe &outPipe, OrderMaker &groupAtts, Function &computeMe) { }
-	void WaitUntilDone () { }
-	void Use_n_Pages (int n) { }
+	void Run (Pipe &inPipe, Pipe &outPipe, OrderMaker &groupAtts, Function &computeMe);
+	void WaitUntilDone ();
+	void Use_n_Pages (int n);
 };
 class WriteOut : public RelationalOp {
 	

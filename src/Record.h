@@ -83,7 +83,7 @@ public:
 
 	int ComposeRecord (Schema *mySchema, const char *src);
 
-	void Print();
+	void Print(int n);
 
 	// returns the size of record in bytes
 	int GetSize();
