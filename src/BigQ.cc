@@ -6,6 +6,7 @@
 #include <queue>
 #include <stdio.h>
 #include <string.h>
+#include <sstream>
 
 int BigQ::filecounter = 0;
 
@@ -44,7 +45,7 @@ struct RecordInfo{
 };
 
 
-void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe *outpipe, int filecounter){
+void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe *outpipe, int filecounter, int randNum){
 	
 
 	int num_buffers = num_runs; // num of runs	
@@ -97,18 +98,13 @@ void phasetwo(int num_runs, int runlen, DBFile* infile, Pipe *outpipe, int filec
 		                
 	}
 
-	char outfilepath[64] = "phasetwooutfilepath";
+	char outfilepath[100] = "phasetwooutfilepath";
 	char filecounter_string[32];
-	sprintf(filecounter_string, "%d", filecounter);
-	strcat(outfilepath, filecounter_string);
-
-	//char *fout0 = "out0";
-	//char *fout1 = "out1";
-	//if(filecounter==1) foutpath = fout0;
-	//else foutpath = fout1;
+	sprintf(filecounter_string, "%d", randNum +1);
+	strcat(outfilepath, filecounter_string);	
 	
 	char * foutpath;
-	foutpath = &outfilepath;
+	foutpath = &outfilepath[0];
 
 	DBFile* outfile = new DBFile();
 	outfile->Create(foutpath, heap, NULL);
@@ -248,18 +244,14 @@ BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
     	Schema *schema = pschema;
 	DBFile tempFile;
 
-	/*char *tmppath0 = "abc0";
-	char *tmppath1 = "abc1";	
-	if(filecounter==1) fpath = tmppath0;
-	else fpath = tmppath1;*/
-
-	char infilepath[64] = "BigQInfilepath";
+	char infilepath[100] = "BigQInfilepath";
 	char filecounter_string[32];
-	sprintf(filecounter_string, "%d", filecounter);
+	int randNum = rand()%10000 + 1;
+	sprintf(filecounter_string, "%d", randNum);
 	strcat(infilepath, filecounter_string);
 
 	char * fpath;
-	fpath = &infilepath;
+	fpath = &infilepath[0];
 
 	cout << "BigQ.filecounter: " << filecounter << endl;
 	cout << "BigQ.fpath: " << fpath << endl;
@@ -335,7 +327,7 @@ BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
 	cout << "***** Infile Records: " << counter << endl;
 	//cout << "***** Infile curlen: " << tempFile_currlen << endl;
 
-	phasetwo(runcount, runlen, &tempFile, &out, filecounter);
+	phasetwo(runcount, runlen, &tempFile, &out, filecounter, randNum);
 	
 
 	// construct priority queue over sorted runs and dump sorted data 
