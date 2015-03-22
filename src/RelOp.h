@@ -95,10 +95,14 @@ class Project : public RelationalOp {
 	
 };
 class Join : public RelationalOp { 
+	
+	private:
+	 pthread_t thread;
+	 int RunPages;
 	public:
-	void Run (Pipe &inPipeL, Pipe &inPipeR, Pipe &outPipe, CNF &selOp, Record &literal) { }
-	void WaitUntilDone () { }
-	void Use_n_Pages (int n) { }
+	void Run (Pipe &inPipeL, Pipe &inPipeR, Pipe &outPipe, CNF &selOp, Record &literal);
+	void WaitUntilDone ();
+	void Use_n_Pages (int n);
 };
 class DuplicateRemoval : public RelationalOp {
 	private:

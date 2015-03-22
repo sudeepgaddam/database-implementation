@@ -298,3 +298,129 @@ void WriteOut::WaitUntilDone () {
 void WriteOut::Use_n_Pages (int runlen) {
 
 }
+
+/*--------------------- Join Methods ----------------------------------*/
+void* run_q (void *arg) {
+	
+	bigq_util *t = (bigq_util *) arg;
+	BigQ b_queue(*(t->inpipe),*(t->outpipe),*(t->sort_order),t->run_len);
+}
+
+	void *join_run (void *arg) {
+		Record Lrec,Rrec;
+		ComparisonEngine comp;
+		OrderMaker leftOrder, rightOrder;
+		join_util *jutil = (join_util *)arg; 
+		Pipe *inPipeL = jutil->inPipeL;
+		Pipe *inPipeR = jutil->inPipeR;
+		Pipe *outPipe = jutil->outPipe;
+		CNF *selOp  = jutil->selOp;
+		Record *literal = jutil->literal;
+		if (!GetSortOrders (leftOrder, rightOrder)) {
+			//BNLJoin();
+			return;
+		} 
+		
+		
+		Pipe *in1;
+    	Pipe *out1;
+		bigq_util* util1;
+		pthread_t left_bigq_thread;
+		in1 = new  (std::nothrow) Pipe(PIPE_BUFFER);
+		out1 = new (std::nothrow) Pipe(PIPE_BUFFER);
+		util1 = new bigq_util();
+		util1->inpipe=in1;
+		util1->outpipe=out1;
+		util1->sort_order=leftOrder;
+		util1->run_len=RunPages;
+		pthread_create (&left_bigq_thread, NULL,run_q, (void*)util1);
+		
+		
+		Pipe *in2;
+    	Pipe *out2;
+		bigq_util* util2;
+		pthread_t right_bigq_thread;
+		in2 = new  (std::nothrow) Pipe(PIPE_BUFFER);
+		out2 = new (std::nothrow) Pipe(PIPE_BUFFER);
+		util2 = new bigq_util();
+		util2->inpipe=in2;
+		util2->outpipe=out2;
+		util2->sort_order=rightOrder;
+		util2->run_len=RunPages;
+		pthread_create (&right_bigq_thread, NULL,run_q, (void*)util1);
+		
+		
+		//Sort Merge Join
+		while(inPipeL->Remove(&Lrec)) {
+				in1->Insert(&LRec);
+		}
+		in1->ShutDown();
+		
+		while(inPipeR->Remove(&Rrec)) {
+				in2->Insert(&Rrec);
+		}
+		in2->ShutDown();
+		
+		//
+		bool out1Empty = false;
+		bool out2Empty = false;
+		out1->Remove(&Lrec);
+		out2->Remove(&Rrec)
+		while( !out1Empty && !out2Empty) {
+			if (comp.Compare(&Lrec, &leftOrder, &Rrec, &rightOrder) <0) {
+				//left < right. GetNext from Left Pipe
+				if(!out1->Remove(&Lrec)){
+					out1Empty = true;
+				}
+				
+			} else if (comp.Compare(&Lrec, &leftOrder, &Rrec, &rightOrder) >0){
+				//left > right. GetNext from Right Pipe
+				if(!out2->Remove(&Rrec)){
+					out2Empty = true;
+				}
+			}else{
+				//left = right
+				Record tmpR = Rrec;
+				vector<Record> rightRecsV;
+				rightRecsV.push_back(Rrec);
+				while(!out2Empty && out2->Remove(&Rrec) && !comp.Compare(&tmpR, &Rrec, &rightOrder)){
+					rightRecsV.push_back(&Rrec);
+				}
+				
+				Record tmpL = Lrec;
+				joinRecords(tmpL, rightRecsV);
+				while(!out1Empty && out1->Remove(&Lrec) && !comp.Compare(&tmpL, &Lrec, &leftOrder)) {
+					//Join Lrec with all Records in rightRecs
+					for (int i=0; i<rightRecsV.size(); i++) {
+						//MergeRecords(left, right, numAttsLeft, numAttsRight, attsToKeep, numAttsToKeep, startOfRight);
+						//
+					}
+				}
+				rightRecsV.clear();
+			}
+			
+		}
+	}
+
+	void Join::Run (Pipe &inPipeL, Pipe &inPipeR, Pipe &outPipe, CNF &selOp, Record &literal) { 
+		
+		join_util *jutil = new join_util();
+	jutil->inPipeL = &inPipeL;
+	jutil->inPipeR = &inPipeR;
+	jutil->outPipe = &outPipe;
+	jutil->selOp = &selOp;
+	jutil->literal = &literal;
+	pthread_create (&thread, NULL, join_run, (void *)jutil);
+	
+			
+	}
+	
+	void Join::WaitUntilDone () { }
+	
+	void Join::Use_n_Pages (int n) {
+		RunPages = n;
+		
+		 }
+
+
+
