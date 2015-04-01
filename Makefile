@@ -1,6 +1,6 @@
 # default config
 tag = -i
-CC = g++ -O2 -Wno-deprecated -w
+CC = g++ -std=c++11 -O2 -Wno-deprecated -w
 
 # find current directory and use /src and /bin
 # include /data and /logs if necessary
@@ -25,6 +25,11 @@ sampletest.out: libgtest.a
 	mv *.o $(BIN_DIR)
 
 
+test4_1: Record.o Comparison.o ComparisonEngine.o Schema.o File.o GenericDBFile.o SortedDBFile.o HeapDBFile.o DBFile.o BigQ.o Pipe.o Function.o RelOp.o Statistics.o y.tab.o yyfunc.tab.o lex.yy.o lex.yyfunc.o test4_1.o
+	$(CC) -pthread -o test4_1 Record.o Comparison.o ComparisonEngine.o Schema.o File.o GenericDBFile.o SortedDBFile.o HeapDBFile.o DBFile.o BigQ.o Pipe.o Function.o RelOp.o Statistics.o y.tab.o yyfunc.tab.o lex.yy.o lex.yyfunc.o test4_1.o -lfl
+	mv *.o $(BIN_DIR)
+	mv test $(BIN_DIR)
+	
 test: Record.o Comparison.o ComparisonEngine.o Schema.o File.o GenericDBFile.o SortedDBFile.o HeapDBFile.o DBFile.o BigQ.o Pipe.o Function.o RelOp.o y.tab.o yyfunc.tab.o lex.yy.o lex.yyfunc.o test.o
 	$(CC) -pthread -o test Record.o Comparison.o ComparisonEngine.o Schema.o File.o GenericDBFile.o SortedDBFile.o HeapDBFile.o DBFile.o BigQ.o Pipe.o Function.o RelOp.o y.tab.o yyfunc.tab.o lex.yy.o lex.yyfunc.o test.o -lfl
 	mv *.o $(BIN_DIR)
@@ -51,7 +56,9 @@ test_old.o:
 	
 test2_2.o: 
 	$(DD) -g -c $(SRC_DIR)/test2_2.cc
-
+	
+test4_1.o: 
+	$(DD) -g -c $(SRC_DIR)/test4_1.cc
 test.o: 
 	$(DD) -g -c $(SRC_DIR)/test.cc
 
@@ -62,6 +69,9 @@ libgtest.a:
 	g++ -w -isystem $(GTEST_DIR)/include -I$(GTEST_DIR) -pthread -c $(GTEST_DIR)/src/gtest-all.cc
 	ar -rv libgtest.a gtest-all.o	
 	mv libgtest.a $(CURR_DIR)/bin
+	
+Statistics.o: $(SRC_DIR)/Statistics.cc
+	$(CC) -g -c $(SRC_DIR)/Statistics.cc
 	
 Comparison.o: $(SRC_DIR)/Comparison.cc
 	$(CC) -g -c $(SRC_DIR)/Comparison.cc
