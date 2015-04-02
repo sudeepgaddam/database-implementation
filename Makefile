@@ -28,7 +28,7 @@ sampletest.out: libgtest.a
 test4_1: Record.o Comparison.o ComparisonEngine.o Schema.o File.o GenericDBFile.o SortedDBFile.o HeapDBFile.o DBFile.o BigQ.o Pipe.o Function.o RelOp.o Statistics.o y.tab.o yyfunc.tab.o lex.yy.o lex.yyfunc.o test4_1.o
 	$(CC) -pthread -o test4_1 Record.o Comparison.o ComparisonEngine.o Schema.o File.o GenericDBFile.o SortedDBFile.o HeapDBFile.o DBFile.o BigQ.o Pipe.o Function.o RelOp.o Statistics.o y.tab.o yyfunc.tab.o lex.yy.o lex.yyfunc.o test4_1.o -lfl
 	mv *.o $(BIN_DIR)
-	mv test $(BIN_DIR)
+	mv test4_1 $(BIN_DIR)
 	
 test: Record.o Comparison.o ComparisonEngine.o Schema.o File.o GenericDBFile.o SortedDBFile.o HeapDBFile.o DBFile.o BigQ.o Pipe.o Function.o RelOp.o y.tab.o yyfunc.tab.o lex.yy.o lex.yyfunc.o test.o
 	$(CC) -pthread -o test Record.o Comparison.o ComparisonEngine.o Schema.o File.o GenericDBFile.o SortedDBFile.o HeapDBFile.o DBFile.o BigQ.o Pipe.o Function.o RelOp.o y.tab.o yyfunc.tab.o lex.yy.o lex.yyfunc.o test.o -lfl
@@ -122,15 +122,15 @@ y.tab.o: $(SRC_DIR)/Parser.y
 yyfunc.tab.o: $(SRC_DIR)/ParserFunc.y
 	yacc -p "yyfunc" -b "yyfunc" -d $(SRC_DIR)/ParserFunc.y
 	#sed $(tag) yyfunc.tab.c -e "s/  __attribute__ ((__unused__))$$/# ifndef __cplusplus\n  __attribute__ ((__unused__));\n# endif/" 
-	g++ -c yyfunc.tab.c
+	g++ -w -c yyfunc.tab.c
 
 lex.yy.o: $(SRC_DIR)/Lexer.l
 	lex  $(SRC_DIR)/Lexer.l
-	gcc  -c lex.yy.c -o lex.yy.o
+	gcc  -w -c lex.yy.c -o lex.yy.o
 
 lex.yyfunc.o: $(SRC_DIR)/LexerFunc.l
 	lex -Pyyfunc $(SRC_DIR)/LexerFunc.l
-	gcc  -c lex.yyfunc.c -o lex.yyfunc.o
+	gcc  -w -c lex.yyfunc.c -o lex.yyfunc.o
 
 	
 clean: 

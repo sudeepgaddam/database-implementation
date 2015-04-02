@@ -1,8 +1,8 @@
-//#include "y.tab.h"
+//#include "../yyfunc.tab.h"
 #include <iostream>
 #include <stdlib.h>
 #include "Statistics.h"
-#include "ParseTree.h"
+#include "ParseFunc.h"
 #include <math.h>
 extern "C" struct YY_BUFFER_STATE *yy_scan_string(const char*);
 extern "C" int yyparse(void);
@@ -94,7 +94,17 @@ void q0 (){
 
 	s.AddRel(relName[1],800000);
 	s.AddAtt(relName[1], "ps_suppkey", 10000);	
+	
+	s.Write(fileName);
+	s.Read(fileName);
+	
+		s.AddAtt(relName[1], "ps_asdj", 10000);	
 
+	s.Write(fileName);
+
+	
+	
+/*
 	char *cnf = "(s_suppkey = ps_suppkey)";
 
 	yy_scan_string(cnf);
@@ -118,6 +128,8 @@ void q0 (){
 	{
 		cout<<"Read or write or last apply is not correct\n";
 	}	
+	
+*/
 	
 }
 
