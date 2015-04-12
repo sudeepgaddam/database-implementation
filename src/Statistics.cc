@@ -132,5 +132,45 @@ void  Statistics::Apply(struct AndList *parseTree, char *relNames[], int numToJo
 }
 double Statistics::Estimate(struct AndList *parseTree, char **relNames, int numToJoin)
 {
+	relationToPartitionMap.insert({"partsupp", 1});
+
+	bool valid = checkRelNames(relNames, numToJoin);
+	if (!valid) {cout << "Given RelName not found in DB" << endl; return -1;}
+
 	
+	
+}
+
+bool Statistics::checkRelNames(char **relNames, int numToJoin){
+	std::vector<std::string> v(relNames, relNames + numToJoin);
+	for (auto rel : v){
+		vector<std::string> relsetvec = getSet(rel);
+		if (relsetvec.size()==0) return false;
+		for (string setRel: relsetvec){
+			bool found = false;			
+			for (auto ip: v){
+				if(ip.compare(setRel)==0){
+					found = true;
+				}
+			}
+			if (!found)
+				return false;
+		}
+	}
+	return true;
+}
+
+vector<std::string> Statistics::getSet(string relation){
+	vector<std::string> setvec;
+	auto got = relationToPartitionMap.find(relation);
+	if (got == relationToPartitionMap.end()){
+		return setvec;
+	}
+	int partitionNum = got->second;
+	for (auto ip: relationToPartitionMap){
+		if(ip.second == partitionNum){
+			setvec.push_back(ip.first);
+		}
+	}
+	return setvec;
 }

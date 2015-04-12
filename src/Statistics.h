@@ -45,6 +45,9 @@ public:
 	void  Apply(struct AndList *parseTree, char *relNames[], int numToJoin);
 	double Estimate(struct AndList *parseTree, char **relNames, int numToJoin);
 
+	bool checkRelNames(char **relNames, int numToJoin);
+	vector<std::string> getSet(string relation);
+
 };
 
 #endif

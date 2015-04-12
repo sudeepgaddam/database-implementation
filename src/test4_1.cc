@@ -86,7 +86,7 @@ char *fileName = "Statistics.txt";
 void q0 (){
 
 	Statistics s;
-        char *relName[] = {"supplier","partsupp"};
+        char *relName[] = {"supplier","partsupp", "abc"};
 
 	
 	s.AddRel(relName[0],10000);
@@ -104,15 +104,16 @@ void q0 (){
 	s.AddAtt("s1", "sattr1", 12345);	
 
 	s.Write(fileName);
+	
+	
 
-	
-	
-/*
 	char *cnf = "(s_suppkey = ps_suppkey)";
 
 	yy_scan_string(cnf);
 	yyparse();
-	double result = s.Estimate(final, relName, 2);
+	double result = s.Estimate(final, relName, 3);
+
+/*
 	if(result!=800000)
 		cout<<"error in estimating Q1 before apply \n ";
 	s.Apply(final, relName, 2);
