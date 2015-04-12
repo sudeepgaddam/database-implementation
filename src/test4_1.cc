@@ -86,7 +86,7 @@ char *fileName = "Statistics.txt";
 void q0 (){
 
 	Statistics s;
-        char *relName[] = {"supplier","partsupp", "abc"};
+        char *relName[] = {"supplier","partsupp"};
 
 	
 	s.AddRel(relName[0],10000);
@@ -107,11 +107,11 @@ void q0 (){
 	
 	
 
-	char *cnf = "(s_suppkey = ps_suppkey)";
+	/*char *cnf = "(s_suppkey = ps_suppkey)";
 
 	yy_scan_string(cnf);
 	yyparse();
-	double result = s.Estimate(final, relName, 3);
+	double result = s.Estimate(final, relName, 3);*/
 
 /*
 	if(result!=800000)

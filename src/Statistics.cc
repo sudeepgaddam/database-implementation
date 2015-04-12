@@ -18,6 +18,7 @@ void Statistics::AddRel(char *relName, int numTuples)
 	Partition p;
 	p.partitionNum = partitionsMap.size() + 1;
 	p.numTuples = numTuples;
+	p.relations.push_back(relName);
 
 	//update data structs
 	partitionsMap.insert(std::make_pair(p.partitionNum, p));
@@ -61,6 +62,10 @@ void Statistics::CopyRel(char *oldName, char *newName)
 			newp.numTuples = p.numTuples;
 			//copy AttributeMap
 			newp.AttributeMap = p.AttributeMap;
+			vector<string> rels = p.relations;
+			for (string s: rels){
+				newp.relations.push_back(s);
+			}
 			partitionsMap.insert(std::make_pair(newPartitionNum, newp));
 		}
 	}
@@ -93,14 +98,22 @@ void Statistics::Read(const char *fromWhere)
 		
 		int partitionNumber = stoi(tokens[0], NULL);
 		int numTuples = stoi(tokens[1], NULL);
+
+		vector<std::string> relations;
+		int numRels = stoi(tokens[2], NULL);
+		for (int i=1; i<= numRels; i++){
+			relations.push_back(tokens[2+i]);
+		}
+
 		std::unordered_map<std::string,int> attr;
-		for (int i=2;i<tokens.size(); i+=2) {
+		for (int i=3 + numRels;i<tokens.size(); i+=2) {
 			attr.insert({tokens[i],stoi(tokens[i+1], NULL) });
 		}
 		Partition p;
 		p.partitionNum = partitionNumber;
 		p.numTuples = numTuples;
 		p.AttributeMap = attr;
+		p.relations = relations;
 		partitionsMap.insert(std::make_pair(partitionNumber, p));
 			 
 	}
@@ -120,6 +133,14 @@ void Statistics::Write(const char *fromWhere)
 		outfile << ip.first << " ";
 		auto got = partitionsMap.find(ip.first);
 		outfile << got->second.numTuples << " ";
+
+		int numRels = got->second.relations.size();
+		outfile << numRels << " ";
+	
+		for (int i=0; i<numRels; i++){
+			outfile << got->second.relations[i] << " ";
+		}
+
 		for (auto att: got->second.AttributeMap){
 			outfile << att.first << " " << att.second << " ";
 		}

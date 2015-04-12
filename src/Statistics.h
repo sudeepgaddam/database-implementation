@@ -23,6 +23,7 @@ typedef struct Partition{
 	int partitionNum;
 	std::unordered_map<std::string,int> AttributeMap;
 	int numTuples;
+	std::vector<string> relations;
 }Partition;
 
 class Statistics
