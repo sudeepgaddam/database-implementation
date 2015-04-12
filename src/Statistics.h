@@ -17,22 +17,19 @@
 //using std::unordered_map;
 //using std::pair;
 using namespace std;
-typedef struct rel_attr {
-	string relation_name;
-	string attribute_name;
-}rel_attr;
-typedef std::pair<std::string, std::string> Att_key;
 
-//http://stackoverflow.com/questions/7222143/unordered-map-hash-function-c  : to use pairs in unordered map
-typedef std::unordered_map<std::string,double> AttributeMap;
-typedef std::unordered_map<std::string,AttributeMap> RelAttMap;
-typedef std::unordered_map<std::string, double> RelationMap;
+typedef struct Partition{
+
+	int partitionNum;
+	std::unordered_map<std::string,int> AttributeMap;
+	int numTuples;
+}Partition;
 
 class Statistics
 {
 private:
-	RelationMap relation;
-	RelAttMap relAttMap;
+	std::unordered_map<int, Partition> partitionsMap;
+	std::unordered_map<std::string, int> relationToPartitionMap;
 public:
 	Statistics();
 	Statistics(Statistics &copyMe);

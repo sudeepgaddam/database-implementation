@@ -98,7 +98,10 @@ void q0 (){
 	s.Write(fileName);
 	s.Read(fileName);
 	
-		s.AddAtt(relName[1], "ps_asdj", 10000);	
+	s.AddAtt(relName[1], "ps_asdj", 10000);	
+
+	s.CopyRel("supplier","s1");
+	s.AddAtt("s1", "sattr1", 12345);	
 
 	s.Write(fileName);
 

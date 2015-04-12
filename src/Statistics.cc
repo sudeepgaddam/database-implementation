@@ -14,80 +14,117 @@ Statistics::~Statistics()
 //unordered map
 void Statistics::AddRel(char *relName, int numTuples)
 {	
-	relation.insert({relName, numTuples});
+	//create new PartitionObj for relName
+	Partition p;
+	p.partitionNum = partitionsMap.size() + 1;
+	p.numTuples = numTuples;
+
+	//update data structs
+	partitionsMap.insert(std::make_pair(p.partitionNum, p));
+	relationToPartitionMap.insert({relName, p.partitionNum});
 }
 //map
 void Statistics::AddAtt(char *relName, char *attName, int numDistincts)
-{	auto got = relation.find (relName);
-	if (got == relation.end()) {
-		cout<<"Relation not found"<<endl;
-	} else {
-		AttributeMap attr ;
-		attr.insert({attName, numDistincts});
-		
-		auto got = relAttMap.find(relName);
-		if (got != relAttMap.end()) {
-			cout << "Attmap already exists" << endl;
-			got->second.insert({attName, numDistincts});
-		} else {
-			relAttMap.insert({relName, attr});
+{	
+	auto got = relationToPartitionMap.find(relName);
+	if (got == relationToPartitionMap.end()){
+		cout<<"RelName not present in DB" << endl;
+	}else{
+		int partitionNum = got->second;
+		auto got = partitionsMap.find(partitionNum);
+		if (got == partitionsMap.end()){
+			cout << "PartitionObject was not created for this relName"<<endl;
+		}else{
+			Partition &p = got->second;						
+			p.AttributeMap.insert({attName, numDistincts});			
 		}
 	}
 }
+
+//copy if relname is present as independent partition
 void Statistics::CopyRel(char *oldName, char *newName)
 {
-	auto got = relation.find (oldName);
-	if (got == relation.end()) {
+	auto got = relationToPartitionMap.find (oldName);
+	if (got == relationToPartitionMap.end()) {
 		cout<<"Old Name not found; Cannot Replace"<<endl;
 	} else {
-		relation.insert({newName, got->second});
-		AttributeMap attr ;
-		
-		auto got = relAttMap.find (oldName);
-			attr.insert(got->second.begin(), got->second.end());
-		relAttMap.insert({newName, attr});
+		int newPartitionNum = partitionsMap.size()+1;
+		relationToPartitionMap.insert({newName, newPartitionNum});
+		int oldPartitionNum = got->second;
+		auto got = partitionsMap.find(oldPartitionNum);
+		if(got == partitionsMap.end()){
+			cout<<"Not able to find PartitionObject for oldName"<<endl;
+		}else{
+			Partition &p = got->second;
+			Partition newp;
+			newp.partitionNum = newPartitionNum;
+			newp.numTuples = p.numTuples;
+			//copy AttributeMap
+			newp.AttributeMap = p.AttributeMap;
+			partitionsMap.insert(std::make_pair(newPartitionNum, newp));
+		}
 	}
 }
 	
 void Statistics::Read(const char *fromWhere)
 {	string line;
 	std::ifstream infile(fromWhere);
+
+	std::getline(infile,line);
+	int numPartitions = stoi(line);
+
 	
+	std::getline(infile,line);
+	std::istringstream iss(line);
+	vector<string> tokens;
+	copy(istream_iterator<string>(iss),
+	istream_iterator<string>(),
+	back_inserter(tokens));
+	for (int i=0;i<tokens.size(); i+=2) {
+		relationToPartitionMap.insert({tokens[i],stoi(tokens[i+1], NULL) });
+	}
+
 	while (std::getline(infile,line)){
 		std::istringstream iss(line);
+		vector<string> tokens;
+		copy(istream_iterator<string>(iss),
+		istream_iterator<string>(),
+		back_inserter(tokens));
 		
-			vector<string> tokens;
-
-				copy(istream_iterator<string>(iss),
-			 istream_iterator<string>(),
-			 back_inserter(tokens));
-			 
-			 string relName = tokens[0];
-			 double tuples = stod(tokens[1], NULL);
-			 AttributeMap attr ;
-			 for (int i=2;i<tokens.size(); i+=2) {
-				 attr.insert({tokens[i],stod(tokens[i+1], NULL) });
-			 }
-			 
-			 relAttMap.insert({relName, attr});
-			 relation.insert({relName, tuples});
-			 
+		int partitionNumber = stoi(tokens[0], NULL);
+		int numTuples = stoi(tokens[1], NULL);
+		std::unordered_map<std::string,int> attr;
+		for (int i=2;i<tokens.size(); i+=2) {
+			attr.insert({tokens[i],stoi(tokens[i+1], NULL) });
 		}
+		Partition p;
+		p.partitionNum = partitionNumber;
+		p.numTuples = numTuples;
+		p.AttributeMap = attr;
+		partitionsMap.insert(std::make_pair(partitionNumber, p));
+			 
+	}
 	
 }
 void Statistics::Write(const char *fromWhere)
 {
 	std::ofstream outfile(fromWhere);
-	for (auto ip: relAttMap) {
-			outfile << ip.first <<" ";
-			auto got = relation.find(ip.first);
-			outfile << got->second <<" ";
-			for (auto inmap : ip.second) {
-				outfile << inmap.first <<" ";
-				outfile << inmap.second <<" ";
-			}
-			outfile << endl;
+	outfile << relationToPartitionMap.size() << endl;
+	for (auto ip: relationToPartitionMap) {
+		outfile << ip.first <<" ";
+		auto got = relationToPartitionMap.find(ip.first);
+		outfile << got->second <<" ";
+	}
+	outfile << endl;
+	for (auto ip: partitionsMap){
+		outfile << ip.first << " ";
+		auto got = partitionsMap.find(ip.first);
+		outfile << got->second.numTuples << " ";
+		for (auto att: got->second.AttributeMap){
+			outfile << att.first << " " << att.second << " ";
 		}
+		outfile << endl;
+	}
 }
 
 void  Statistics::Apply(struct AndList *parseTree, char *relNames[], int numToJoin)
@@ -95,4 +132,5 @@ void  Statistics::Apply(struct AndList *parseTree, char *relNames[], int numToJo
 }
 double Statistics::Estimate(struct AndList *parseTree, char **relNames, int numToJoin)
 {
+	
 }
