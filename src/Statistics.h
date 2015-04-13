@@ -23,10 +23,16 @@ using namespace std;
 typedef struct Partition{
 
 	int partitionNum;
-	std::unordered_map<std::string,int> AttributeMap;
+	std::unordered_map<std::string,unsigned long long int> AttributeMap;
 	unsigned long long int numTuples;
 	std::vector<string> relations;
 }Partition;
+
+typedef struct AttInfo{
+	int partitionNum;
+	unsigned long long int numTuples; //in that partition
+	unsigned long long int numDistinct;
+}AttInfo;
 
 class Statistics
 {
@@ -50,10 +56,10 @@ public:
 
 	bool checkRelNames(char **relNames, int numToJoin);
 	vector<std::string> getSet(string relation);
-	std::pair<unsigned long long int,unsigned long long int> getAttInfo(string attr);
+	AttInfo getAttInfo(string attr);
 	double getCNFSelectivity(string attName, vector<string> &orAttributes, double selFac, int oper);
 	double JoinCost(const struct AndList *andList);
-
+	void mergePartitions(Partition p1, Partition p2, int newTuples);
 };
 
 #endif

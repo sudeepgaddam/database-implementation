@@ -92,8 +92,8 @@ void Statistics::Read(const char *fromWhere)
 		back_inserter(tokens));
 		
 		int partitionNumber = stoi(tokens[0], NULL);
-		int numTuples = stoi(tokens[1], NULL);
-		std::unordered_map<std::string,int> attr;
+		unsigned long long int numTuples = stoi(tokens[1], NULL);
+		std::unordered_map<std::string,unsigned long long int> attr;
 		for (int i=2;i<tokens.size(); i+=2) {
 			attr.insert({tokens[i],stoi(tokens[i+1], NULL) });
 		}
@@ -129,6 +129,21 @@ void Statistics::Write(const char *fromWhere)
 
 void  Statistics::Apply(struct AndList *parseTree, char *relNames[], int numToJoin)
 {
+	double estimate = Estimate(parseTree, relNames, numToJoin);
+	if (estimate == -1){
+		cout << "cannot Apply - check input" << endl;		
+		return;
+	}
+	
+	/*int part1;
+	int part2;
+
+	Partition p1;
+	Partition p2;*/
+
+	//mergePartitions(p1, p2, estimate);
+
+	
 }
 double Statistics::Estimate(struct AndList *parseTree, char **relNames, int numToJoin)
 {
@@ -176,26 +191,34 @@ vector<std::string> Statistics::getSet(string relation){
 	return setvec;
 }
 
-// returns relation.numOfTuples, numOfDistinctValues
-std::pair<unsigned long long int,unsigned long long int> Statistics::getAttInfo(std::string attr){
+// returns relation.numOfTuples, numOfDistinctValues;
+// returns partitionNumber of attr, numOfDistinctValues;
+AttInfo Statistics::getAttInfo(std::string attr){
 
+	AttInfo aInfo;
 	for (auto ip: partitionsMap){
 		Partition &p = ip.second;
 		for (auto ia: p.AttributeMap){
 			std::string p_attr = ia.first;
 			if (p_attr.compare(attr)==0){
-				return make_pair(p.numTuples, ia.second);
+				aInfo.partitionNum = p.partitionNum;
+				aInfo.numTuples = p.numTuples;
+				aInfo.numDistinct = ia.second;
+				return aInfo;
 			}
 		}		
 	}
-	return make_pair(-1,-1);
+	aInfo.partitionNum = -1;
+	aInfo.numTuples = -1;
+	aInfo.numDistinct = -1;
+	return aInfo;
 }
 
 double Statistics::getCNFSelectivity(std::string attName, std::vector<std::string> &orAttributes, double selFac, int oper){
 		double  sel = 1.0f;
-		auto AttInfo = getAttInfo(attName);
-		unsigned long long int Tuples = AttInfo.first;
-		unsigned long long int disTupAttr = AttInfo.second;
+		auto attInfo = getAttInfo(attName);
+		unsigned long long int Tuples = attInfo.numTuples;
+		unsigned long long int disTupAttr = attInfo.numDistinct;
 		sel = (oper == EQUALS) ? disTupAttr/Tuples : 1.0/3;
 
 		if (orAttributes.empty()) {
@@ -236,10 +259,13 @@ double Statistics::JoinCost(const struct AndList *andList) {
 					std::string rName = compOP->right->value;
 					auto lAttInfo = getAttInfo(lName);
 					auto rAttInfo = getAttInfo(rName);
-					unsigned long long int lTuples = lAttInfo.first;
-					unsigned long long int rTuples = rAttInfo.first;
+					if (lAttInfo.partitionNum == -1 || rAttInfo.partitionNum==-1){
+						cout<<"Error: not able to find attribute name in any partitions" << endl;
+					}
+					unsigned long long int lTuples = lAttInfo.numTuples;
+					unsigned long long int rTuples = rAttInfo.numTuples;
 					//Max of Distinct tuples for given attrtributes
-					int max =  std::max(lAttInfo.second, rAttInfo.second);
+					int max =  std::max(lAttInfo.numDistinct, rAttInfo.numDistinct);
 					totalTuples = (double) (((double) (lTuples * rTuples)) / (double) max);
 
 				} else if (leftOperand == NAME ) {
@@ -260,3 +286,31 @@ double Statistics::JoinCost(const struct AndList *andList) {
 		return totalTuples*totSelFactor;
 }
 
+
+void Statistics::mergePartitions(Partition p1, Partition p2, int newTuples){
+
+	if (p1.partitionNum == p2.partitionNum) { cout<<"Should never happen" << endl; return;}
+	if (p2.partitionNum < p1.partitionNum){
+		Partition tmp = p2;
+		p2 = p1;
+		p1 = tmp;
+	}
+	//swap if needed and
+	//always merge into p1
+
+	p1.numTuples = newTuples;
+	auto attrMap = p1.AttributeMap;
+	auto consumeAttrMap = p2.AttributeMap;
+	for (auto ip: consumeAttrMap){
+		attrMap.insert({ip.first, ip.second});
+	}
+	auto rels = p1.relations;
+	auto consumerRels = p2.relations;
+	for (auto cRel: consumerRels){
+		rels.push_back(cRel);
+		relationToPartitionMap.insert({cRel, p1.partitionNum});
+	}
+
+	partitionsMap.erase(p2.partitionNum);
+
+}
