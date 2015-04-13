@@ -134,7 +134,7 @@ double Statistics::Estimate(struct AndList *parseTree, char **relNames, int numT
 {
 
 	bool valid = checkRelNames(relNames, numToJoin);
-	//if (!valid) {cout << "Given RelName not found in DB" << endl; return -1;}
+	if (!valid) {cout << "Given RelName not found in DB" << endl; return -1;}
 
 	return JoinCost(parseTree);
 	
@@ -145,9 +145,11 @@ bool Statistics::checkRelNames(char **relNames, int numToJoin){
 	for (auto rel : v){
 		vector<std::string> relsetvec = getSet(rel);
 		if (relsetvec.size()==0) return false;
+		//cout << "found v.size(): " << v.size() << " relSet.size(): " << relsetvec.size() << endl;
 		for (string setRel: relsetvec){
 			bool found = false;			
 			for (auto ip: v){
+				//cout << "setRel: " << setRel << " v.rel: " << ip << endl;
 				if(ip.compare(setRel)==0){
 					found = true;
 				}
@@ -175,7 +177,7 @@ vector<std::string> Statistics::getSet(string relation){
 }
 
 // returns relation.numOfTuples, numOfDistinctValues
-std::pair<int,int> Statistics::getAttInfo(std::string attr){
+std::pair<unsigned long long int,unsigned long long int> Statistics::getAttInfo(std::string attr){
 
 	for (auto ip: partitionsMap){
 		Partition &p = ip.second;
@@ -192,8 +194,8 @@ std::pair<int,int> Statistics::getAttInfo(std::string attr){
 double Statistics::getCNFSelectivity(std::string attName, std::vector<std::string> &orAttributes, double selFac, int oper){
 		double  sel = 1.0f;
 		auto AttInfo = getAttInfo(attName);
-		int Tuples = AttInfo.first;
-		int disTupAttr = AttInfo.second;
+		unsigned long long int Tuples = AttInfo.first;
+		unsigned long long int disTupAttr = AttInfo.second;
 		sel = (oper == EQUALS) ? disTupAttr/Tuples : 1.0/3;
 
 		if (orAttributes.empty()) {
@@ -210,7 +212,7 @@ double Statistics::getCNFSelectivity(std::string attName, std::vector<std::strin
 
 double Statistics::JoinCost(const struct AndList *andList) {
 	
-	double totalTuples;
+	long double totalTuples;
 	double totSelFactor = 1.0f;
 	
 	while (andList != NULL) {
@@ -234,11 +236,12 @@ double Statistics::JoinCost(const struct AndList *andList) {
 					std::string rName = compOP->right->value;
 					auto lAttInfo = getAttInfo(lName);
 					auto rAttInfo = getAttInfo(rName);
-					int lTuples = lAttInfo.first;
-					int rTuples = rAttInfo.first;
+					unsigned long long int lTuples = lAttInfo.first;
+					unsigned long long int rTuples = rAttInfo.first;
 					//Max of Distinct tuples for given attrtributes
 					int max =  std::max(lAttInfo.second, rAttInfo.second);
-					totalTuples = (lTuples * rTuples) / max;
+					totalTuples = (double) (((double) (lTuples * rTuples)) / (double) max);
+
 				} else if (leftOperand == NAME ) {
 					orSelFactor = getCNFSelectivity(compOP->left->value, orAttributes, orSelFactor, opCode);
 

@@ -24,7 +24,7 @@ typedef struct Partition{
 
 	int partitionNum;
 	std::unordered_map<std::string,int> AttributeMap;
-	int numTuples;
+	unsigned long long int numTuples;
 	std::vector<string> relations;
 }Partition;
 
@@ -50,7 +50,7 @@ public:
 
 	bool checkRelNames(char **relNames, int numToJoin);
 	vector<std::string> getSet(string relation);
-	std::pair<int,int> getAttInfo(string attr);
+	std::pair<unsigned long long int,unsigned long long int> getAttInfo(string attr);
 	double getCNFSelectivity(string attName, vector<string> &orAttributes, double selFac, int oper);
 	double JoinCost(const struct AndList *andList);
 

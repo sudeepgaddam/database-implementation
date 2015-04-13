@@ -111,11 +111,13 @@ void q0 (){
 
 	yy_scan_string(cnf);
 	yyparse();
-	double result = s.Estimate(final, relName, 3);
+	double result = s.Estimate(final, relName, 2);
 
 
 	if(result!=800000)
 		cout<<"error in estimating Q1 before apply result:" << result <<endl;
+
+	cout << "estimate: " << result << endl;
 	/*
 	s.Apply(final, relName, 2);
 
