@@ -58,8 +58,9 @@ public:
 	vector<std::string> getSet(string relation);
 	AttInfo getAttInfo(string attr);
 	double getCNFSelectivity(string attName, vector<string> &orAttributes, double selFac, int oper);
-	double JoinCost(const struct AndList *andList);
-	void mergePartitions(Partition p1, Partition p2, int newTuples);
+	std::pair<std::pair<unsigned long long int, double>, std::pair<int,int>> JoinCost(const struct AndList *andList);
+	void mergePartitions(Partition& p1, Partition& p2, int newTuples);
+	Partition& getPartition(int partNum);
 };
 
 #endif

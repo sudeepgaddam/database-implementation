@@ -129,19 +129,21 @@ void Statistics::Write(const char *fromWhere)
 
 void  Statistics::Apply(struct AndList *parseTree, char *relNames[], int numToJoin)
 {
-	double estimate = Estimate(parseTree, relNames, numToJoin);
-	if (estimate == -1){
+	auto estPair = JoinCost(parseTree);
+	if (estPair.first.first == -1){
 		cout << "cannot Apply - check input" << endl;		
 		return;
 	}
 	
-	/*int part1;
-	int part2;
+	int part1 =estPair.second.first;
+	int part2 =estPair.second.second;
 
-	Partition p1;
-	Partition p2;*/
+	cout << "part1: " << part1 << " part2: " << part2;
+	
+	Partition &p1 = getPartition(part1);
+	Partition &p2 = getPartition(part2);
 
-	//mergePartitions(p1, p2, estimate);
+	mergePartitions(p1, p2, 100);
 
 	
 }
@@ -151,7 +153,8 @@ double Statistics::Estimate(struct AndList *parseTree, char **relNames, int numT
 	bool valid = checkRelNames(relNames, numToJoin);
 	if (!valid) {cout << "Given RelName not found in DB" << endl; return -1;}
 
-	return JoinCost(parseTree);
+	auto estPair = JoinCost(parseTree);
+	return estPair.first.first*estPair.first.second;
 	
 }
 
@@ -195,23 +198,32 @@ vector<std::string> Statistics::getSet(string relation){
 // returns partitionNumber of attr, numOfDistinctValues;
 AttInfo Statistics::getAttInfo(std::string attr){
 
+	cout << "inside getAttInfo() attr: " << attr << endl;
+
+	for (auto ip: partitionsMap){
+		cout << "pNum: " << ip.first << " tuples: " << ip.second.numTuples << endl;
+		for (auto ap: ip.second.AttributeMap){
+			cout << "attr-ap.first: " << ap.first << " : " << "numDistinct: " << ap.second << endl;
+		}
+	}
+
 	AttInfo aInfo;
 	for (auto ip: partitionsMap){
-		Partition &p = ip.second;
-		for (auto ia: p.AttributeMap){
-			std::string p_attr = ia.first;
-			if (p_attr.compare(attr)==0){
-				aInfo.partitionNum = p.partitionNum;
-				aInfo.numTuples = p.numTuples;
-				aInfo.numDistinct = ia.second;
-				return aInfo;
-			}
+		auto got = ip.second.AttributeMap.find(attr);
+		if (got == ip.second.AttributeMap.end()){
+			aInfo.partitionNum = -1;
+			aInfo.numTuples = -1;
+			aInfo.numDistinct = -1;
+			return aInfo;
+		}else{
+			aInfo.partitionNum = ip.second.partitionNum;
+			aInfo.numTuples = ip.second.numTuples;
+			aInfo.numDistinct = got->second;
+			cout << "aInfo.partNum: " << aInfo.partitionNum << " aInfo.numTuples: " << aInfo.numTuples << endl;
+			return aInfo;
 		}		
 	}
-	aInfo.partitionNum = -1;
-	aInfo.numTuples = -1;
-	aInfo.numDistinct = -1;
-	return aInfo;
+	
 }
 
 double Statistics::getCNFSelectivity(std::string attName, std::vector<std::string> &orAttributes, double selFac, int oper){
@@ -233,10 +245,13 @@ double Statistics::getCNFSelectivity(std::string attName, std::vector<std::strin
 		return selFac;
 }
 
-double Statistics::JoinCost(const struct AndList *andList) {
+std::pair<std::pair<unsigned long long int, double>, std::pair<int,int>> Statistics::JoinCost(const struct AndList *andList) {
 	
 	long double totalTuples;
 	double totSelFactor = 1.0f;
+
+	int partNum1 = -1;
+	int partNum2 = -2;
 	
 	while (andList != NULL) {
 		struct OrList *orList = andList->left;
@@ -252,7 +267,7 @@ double Statistics::JoinCost(const struct AndList *andList) {
 				if (leftOperand ==NAME && rightOperand == NAME) {
 					if (opCode != EQUALS) {
 						cout<<"Error: Join allowed only with equals operation" <<endl;
-						return -1;
+						return make_pair(make_pair(-1,-1), make_pair(-1,-1));
 					} 
 					
 					std::string lName = compOP->left->value;
@@ -267,6 +282,9 @@ double Statistics::JoinCost(const struct AndList *andList) {
 					//Max of Distinct tuples for given attrtributes
 					int max =  std::max(lAttInfo.numDistinct, rAttInfo.numDistinct);
 					totalTuples = (double) (((double) (lTuples * rTuples)) / (double) max);
+
+					partNum1 = lAttInfo.partitionNum;
+					partNum2 = rAttInfo.partitionNum;
 
 				} else if (leftOperand == NAME ) {
 					orSelFactor = getCNFSelectivity(compOP->left->value, orAttributes, orSelFactor, opCode);
@@ -283,15 +301,26 @@ double Statistics::JoinCost(const struct AndList *andList) {
 		andList = andList->rightAnd;
 		
 	}
-		return totalTuples*totSelFactor;
+	
+	return make_pair(make_pair(totalTuples, totSelFactor), make_pair(partNum1, partNum2));
+		//return totalTuples*totSelFactor;
 }
 
 
-void Statistics::mergePartitions(Partition p1, Partition p2, int newTuples){
+void Statistics::mergePartitions(Partition &p1, Partition &p2, int newTuples){
 
+	cout << "startMerge" << endl;
+
+	for (auto ip: partitionsMap){
+		cout << "pNum: " << ip.first << " tuples: " << ip.second.numTuples << endl;
+	}
+	cout << "start" << endl;
+
+	int oldPartNum = p2.partitionNum;
 	if (p1.partitionNum == p2.partitionNum) { cout<<"Should never happen" << endl; return;}
 	if (p2.partitionNum < p1.partitionNum){
-		Partition tmp = p2;
+		oldPartNum = p1.partitionNum;
+		Partition &tmp = p2;
 		p2 = p1;
 		p1 = tmp;
 	}
@@ -299,18 +328,27 @@ void Statistics::mergePartitions(Partition p1, Partition p2, int newTuples){
 	//always merge into p1
 
 	p1.numTuples = newTuples;
-	auto attrMap = p1.AttributeMap;
-	auto consumeAttrMap = p2.AttributeMap;
-	for (auto ip: consumeAttrMap){
-		attrMap.insert({ip.first, ip.second});
-	}
-	auto rels = p1.relations;
-	auto consumerRels = p2.relations;
-	for (auto cRel: consumerRels){
-		rels.push_back(cRel);
+	p1.AttributeMap.insert(p2.AttributeMap.begin(), p2.AttributeMap.end());
+	p1.relations.insert(p1.relations.end(), p2.relations.begin(), p2.relations.end());
+
+	for (auto cRel: p2.relations){
 		relationToPartitionMap.insert({cRel, p1.partitionNum});
 	}
 
-	partitionsMap.erase(p2.partitionNum);
+	partitionsMap.erase(oldPartNum);
 
+	for (auto ip: partitionsMap){
+		cout << "pNum: " << ip.first << " tuples: " << ip.second.numTuples << endl;
+	}
+	cout << "endMerge" << endl;
+}
+
+Partition& Statistics::getPartition(int partNum){
+	auto got = partitionsMap.find(partNum);
+	if (got == partitionsMap.end()){
+		cout << "Error: cant find partition1" << endl;
+		//return;
+	}
+	return got->second;
+	
 }
