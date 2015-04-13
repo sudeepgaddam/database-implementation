@@ -107,15 +107,16 @@ void q0 (){
 	
 	
 
-	/*char *cnf = "(s_suppkey = ps_suppkey)";
+	char *cnf = "(s_suppkey = ps_suppkey)";
 
 	yy_scan_string(cnf);
 	yyparse();
-	double result = s.Estimate(final, relName, 3);*/
+	double result = s.Estimate(final, relName, 3);
 
-/*
+
 	if(result!=800000)
-		cout<<"error in estimating Q1 before apply \n ";
+		cout<<"error in estimating Q1 before apply result:" << result <<endl;
+	/*
 	s.Apply(final, relName, 2);
 
 	// test write and read
@@ -133,8 +134,8 @@ void q0 (){
 		cout<<"Read or write or last apply is not correct\n";
 	}	
 	
-*/
-	
+
+	*/
 }
 
 void q1 (){

@@ -2,14 +2,16 @@
 #define STATISTICS_H
 
 #include "ParseFunc.h"
-#include <stdlib.h>
+#include <cstdlib>
 #include <iostream>
 #include <fstream>
-#include <vector>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <string>
-#include <map>
+#include <vector>
+#include <memory>
+#include <algorithm>
 #include <sstream>
 #include <iterator>
 
@@ -48,6 +50,9 @@ public:
 
 	bool checkRelNames(char **relNames, int numToJoin);
 	vector<std::string> getSet(string relation);
+	std::pair<int,int> getAttInfo(string attr);
+	double getCNFSelectivity(string attName, vector<string> &orAttributes, double selFac, int oper);
+	double JoinCost(const struct AndList *andList);
 
 };
 

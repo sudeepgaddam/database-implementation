@@ -1,5 +1,5 @@
 #include "Statistics.h"
-
+using namespace std;
 
 Statistics::Statistics()
 {
@@ -18,7 +18,6 @@ void Statistics::AddRel(char *relName, int numTuples)
 	Partition p;
 	p.partitionNum = partitionsMap.size() + 1;
 	p.numTuples = numTuples;
-	p.relations.push_back(relName);
 
 	//update data structs
 	partitionsMap.insert(std::make_pair(p.partitionNum, p));
@@ -62,10 +61,6 @@ void Statistics::CopyRel(char *oldName, char *newName)
 			newp.numTuples = p.numTuples;
 			//copy AttributeMap
 			newp.AttributeMap = p.AttributeMap;
-			vector<string> rels = p.relations;
-			for (string s: rels){
-				newp.relations.push_back(s);
-			}
 			partitionsMap.insert(std::make_pair(newPartitionNum, newp));
 		}
 	}
@@ -98,22 +93,14 @@ void Statistics::Read(const char *fromWhere)
 		
 		int partitionNumber = stoi(tokens[0], NULL);
 		int numTuples = stoi(tokens[1], NULL);
-
-		vector<std::string> relations;
-		int numRels = stoi(tokens[2], NULL);
-		for (int i=1; i<= numRels; i++){
-			relations.push_back(tokens[2+i]);
-		}
-
 		std::unordered_map<std::string,int> attr;
-		for (int i=3 + numRels;i<tokens.size(); i+=2) {
+		for (int i=2;i<tokens.size(); i+=2) {
 			attr.insert({tokens[i],stoi(tokens[i+1], NULL) });
 		}
 		Partition p;
 		p.partitionNum = partitionNumber;
 		p.numTuples = numTuples;
 		p.AttributeMap = attr;
-		p.relations = relations;
 		partitionsMap.insert(std::make_pair(partitionNumber, p));
 			 
 	}
@@ -133,14 +120,6 @@ void Statistics::Write(const char *fromWhere)
 		outfile << ip.first << " ";
 		auto got = partitionsMap.find(ip.first);
 		outfile << got->second.numTuples << " ";
-
-		int numRels = got->second.relations.size();
-		outfile << numRels << " ";
-	
-		for (int i=0; i<numRels; i++){
-			outfile << got->second.relations[i] << " ";
-		}
-
 		for (auto att: got->second.AttributeMap){
 			outfile << att.first << " " << att.second << " ";
 		}
@@ -153,12 +132,11 @@ void  Statistics::Apply(struct AndList *parseTree, char *relNames[], int numToJo
 }
 double Statistics::Estimate(struct AndList *parseTree, char **relNames, int numToJoin)
 {
-	relationToPartitionMap.insert({"partsupp", 1});
 
 	bool valid = checkRelNames(relNames, numToJoin);
-	if (!valid) {cout << "Given RelName not found in DB" << endl; return -1;}
+	//if (!valid) {cout << "Given RelName not found in DB" << endl; return -1;}
 
-	
+	return JoinCost(parseTree);
 	
 }
 
@@ -195,3 +173,87 @@ vector<std::string> Statistics::getSet(string relation){
 	}
 	return setvec;
 }
+
+// returns relation.numOfTuples, numOfDistinctValues
+std::pair<int,int> Statistics::getAttInfo(std::string attr){
+
+	for (auto ip: partitionsMap){
+		Partition &p = ip.second;
+		for (auto ia: p.AttributeMap){
+			std::string p_attr = ia.first;
+			if (p_attr.compare(attr)==0){
+				return make_pair(p.numTuples, ia.second);
+			}
+		}		
+	}
+	return make_pair(-1,-1);
+}
+
+double Statistics::getCNFSelectivity(std::string attName, std::vector<std::string> &orAttributes, double selFac, int oper){
+		double  sel = 1.0f;
+		auto AttInfo = getAttInfo(attName);
+		int Tuples = AttInfo.first;
+		int disTupAttr = AttInfo.second;
+		sel = (oper == EQUALS) ? disTupAttr/Tuples : 1.0/3;
+
+		if (orAttributes.empty()) {
+			selFac = sel;
+			orAttributes.push_back(attName);
+		} else if (std::find(orAttributes.begin(), orAttributes.end(), attName) == orAttributes.end()) {
+					selFac = 1 - (1 - selFac) * (1 -sel);
+					orAttributes.push_back(attName);
+		} else {
+					selFac += sel;
+		}
+		return selFac;
+}
+
+double Statistics::JoinCost(const struct AndList *andList) {
+	
+	double totalTuples;
+	double totSelFactor = 1.0f;
+	
+	while (andList != NULL) {
+		struct OrList *orList = andList->left;
+		double orSelFactor = 1.0f;
+		std::vector<std::string> orAttributes;  
+		while (orList != NULL) {
+			struct ComparisonOp *compOP = orList->left;
+			int leftOperand = compOP->left->code;
+			int rightOperand = compOP->right->code;
+			
+			int opCode = compOP->code;
+			// NAME == NAME
+				if (leftOperand ==NAME && rightOperand == NAME) {
+					if (opCode != EQUALS) {
+						cout<<"Error: Join allowed only with equals operation" <<endl;
+						return -1;
+					} 
+					
+					std::string lName = compOP->left->value;
+					std::string rName = compOP->right->value;
+					auto lAttInfo = getAttInfo(lName);
+					auto rAttInfo = getAttInfo(rName);
+					int lTuples = lAttInfo.first;
+					int rTuples = rAttInfo.first;
+					//Max of Distinct tuples for given attrtributes
+					int max =  std::max(lAttInfo.second, rAttInfo.second);
+					totalTuples = (lTuples * rTuples) / max;
+				} else if (leftOperand == NAME ) {
+					orSelFactor = getCNFSelectivity(compOP->left->value, orAttributes, orSelFactor, opCode);
+
+				}
+				else if (rightOperand == NAME) {
+					orSelFactor = getCNFSelectivity(compOP->right->value, orAttributes, orSelFactor, opCode);
+				}
+			orList = orList->rightOr;
+			}
+		
+		
+		totSelFactor *= orSelFactor;
+		andList = andList->rightAnd;
+		
+	}
+		return totalTuples*totSelFactor;
+}
+
