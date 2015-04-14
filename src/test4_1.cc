@@ -119,10 +119,10 @@ void q0 (){
 
 	cout << "estimate: " << result << endl;
 	
-	//s.Apply(final, relName, 2);
+	s.Apply(final, relName, 2);
 
 	// test write and read
-	//s.Write(fileName);
+	s.Write(fileName);
 
 	/*
 

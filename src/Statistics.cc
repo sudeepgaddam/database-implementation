@@ -197,33 +197,23 @@ vector<std::string> Statistics::getSet(string relation){
 // returns relation.numOfTuples, numOfDistinctValues;
 // returns partitionNumber of attr, numOfDistinctValues;
 AttInfo Statistics::getAttInfo(std::string attr){
-
-	cout << "inside getAttInfo() attr: " << attr << endl;
-
-	for (auto ip: partitionsMap){
-		cout << "pNum: " << ip.first << " tuples: " << ip.second.numTuples << endl;
-		for (auto ap: ip.second.AttributeMap){
-			cout << "attr-ap.first: " << ap.first << " : " << "numDistinct: " << ap.second << endl;
-		}
-	}
-
 	AttInfo aInfo;
 	for (auto ip: partitionsMap){
-		auto got = ip.second.AttributeMap.find(attr);
-		if (got == ip.second.AttributeMap.end()){
-			aInfo.partitionNum = -1;
-			aInfo.numTuples = -1;
-			aInfo.numDistinct = -1;
-			return aInfo;
-		}else{
-			aInfo.partitionNum = ip.second.partitionNum;
-			aInfo.numTuples = ip.second.numTuples;
-			aInfo.numDistinct = got->second;
-			cout << "aInfo.partNum: " << aInfo.partitionNum << " aInfo.numTuples: " << aInfo.numTuples << endl;
-			return aInfo;
-		}		
-	}
+		for (auto ap: ip.second.AttributeMap){
+			if (ap.first.compare(attr)==0){
+				aInfo.partitionNum = ip.first;
+				aInfo.numTuples = ip.second.numTuples;
+				aInfo.numDistinct = ap.second;
+				cout << "aInfo.partNum: " << aInfo.partitionNum << " aInfo.numTuples: " << aInfo.numTuples << endl;
+				return aInfo;	
+			}
+		}
+	}	
 	
+	aInfo.partitionNum = -1;
+	aInfo.numTuples = -1;
+	aInfo.numDistinct = -1;
+	return aInfo;
 }
 
 double Statistics::getCNFSelectivity(std::string attName, std::vector<std::string> &orAttributes, double selFac, int oper){
