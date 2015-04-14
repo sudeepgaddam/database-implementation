@@ -94,52 +94,37 @@ void q0 (){
 
 	s.AddRel(relName[1],800000);
 	s.AddAtt(relName[1], "ps_suppkey", 10000);	
-	
-	s.Write(fileName);
-	s.Read(fileName);
-	
-	s.AddAtt(relName[1], "ps_asdj", 10000);	
-
-	s.CopyRel("supplier","s1");
-	s.AddAtt("s1", "sattr1", 12345);	
-
-	s.Write(fileName);
-	
-	
 
 	char *cnf = "(s_suppkey = ps_suppkey)";
 
 	yy_scan_string(cnf);
 	yyparse();
+	
 	double result = s.Estimate(final, relName, 2);
 
-
 	if(result!=800000)
-		cout<<"error in estimating Q1 before apply result:" << result <<endl;
-
-	cout << "estimate: " << result << endl;
-	
+		cout<<"error in estimating Q1 before apply \n ";
 	s.Apply(final, relName, 2);
 
 	// test write and read
 	s.Write(fileName);
 
-	/*
-
 	//reload the statistics object from file
 	Statistics s1;
-	s1.Read(fileName);	
+	s1.Read(fileName);
+
 	cnf = "(s_suppkey>1000)";	
 	yy_scan_string(cnf);
 	yyparse();
 	double dummy = s1.Estimate(final, relName, 2);
+	//s1.Apply(final, relName, 2);
+		//s.Write(fileName);
+	cout << "dummy: "<<dummy << endl;
 	if(fabs(dummy*3.0-result) >0.1)
 	{
 		cout<<"Read or write or last apply is not correct\n";
 	}	
 	
-
-	*/
 }
 
 void q1 (){
@@ -157,7 +142,6 @@ void q1 (){
 
 	yy_scan_string(cnf);
 	yyparse();
-
 	double result = s.Estimate(final, relName, 1);
 	cout<<"Your estimation Result  " <<result;
 	cout<<"\n Correct Answer: 8.5732e+5";
@@ -227,26 +211,32 @@ void q3 (){
 	
 	s.AddRel(relName[2],25);
 	s.AddAtt(relName[2], "n_nationkey",25);
+		s.Write(fileName);
 
+/*
 	s.CopyRel("nation","n1");
 	s.CopyRel("nation","n2");
 	s.CopyRel("supplier","s");
 	s.CopyRel("customer","c");
 
 	char *set1[] ={"s","n1"};
-	char *cnf = "(s.s_nationkey = n1.n_nationkey)";
+	char *cnf = "(s_nationkey = n_nationkey)";
 	yy_scan_string(cnf);
 	yyparse();	
+
+		s.Write(fileName);
+
 	s.Apply(final, set1, 2);
-	
+*/
+	/*
 	char *set2[] ={"c","n2"};
-	cnf = "(c.c_nationkey = n2.n_nationkey)";
+	cnf = "(c_nationkey = n_nationkey)";
 	yy_scan_string(cnf);
 	yyparse();
 	s.Apply(final, set2, 2);
 
 	char *set3[] = {"c","s","n1","n2"};
-	cnf = " (n1.n_nationkey = n2.n_nationkey )";
+	cnf = " (n_nationkey = n_nationkey )";
 	yy_scan_string(cnf);
 	yyparse();
 
@@ -255,7 +245,7 @@ void q3 (){
 		cout<<"error in estimating Q3\n";
 
 	s.Apply(final, set3, 4);
-
+*/
 	s.Write(fileName);
 
 }

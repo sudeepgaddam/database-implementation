@@ -18,10 +18,11 @@ void Statistics::AddRel(char *relName, int numTuples)
 	Partition p;
 	p.partitionNum = partitionsMap.size() + 1;
 	p.numTuples = numTuples;
-
+	p.relations.push_back(relName);
 	//update data structs
 	partitionsMap.insert(std::make_pair(p.partitionNum, p));
 	relationToPartitionMap.insert({relName, p.partitionNum});
+	
 }
 //map
 void Statistics::AddAtt(char *relName, char *attName, int numDistincts)
@@ -61,6 +62,8 @@ void Statistics::CopyRel(char *oldName, char *newName)
 			newp.numTuples = p.numTuples;
 			//copy AttributeMap
 			newp.AttributeMap = p.AttributeMap;
+			newp.relations = p.relations;
+
 			partitionsMap.insert(std::make_pair(newPartitionNum, newp));
 		}
 	}
@@ -109,7 +112,7 @@ void Statistics::Read(const char *fromWhere)
 void Statistics::Write(const char *fromWhere)
 {
 	std::ofstream outfile(fromWhere);
-	outfile << relationToPartitionMap.size() << endl;
+	outfile << partitionsMap.size() << endl;
 	for (auto ip: relationToPartitionMap) {
 		outfile << ip.first <<" ";
 		auto got = relationToPartitionMap.find(ip.first);
@@ -142,9 +145,10 @@ void  Statistics::Apply(struct AndList *parseTree, char *relNames[], int numToJo
 	
 	Partition &p1 = getPartition(part1);
 	Partition &p2 = getPartition(part2);
-
-	mergePartitions(p1, p2, 100);
-
+	
+	
+	mergePartitions(p1, p2, estPair.first.first);
+	
 	
 }
 double Statistics::Estimate(struct AndList *parseTree, char **relNames, int numToJoin)
@@ -243,6 +247,9 @@ std::pair<std::pair<unsigned long long int, double>, std::pair<int,int>> Statist
 	int partNum1 = -1;
 	int partNum2 = -2;
 	
+	bool hasJoin = false;
+	long double selectionTuples = 0;
+	
 	while (andList != NULL) {
 		struct OrList *orList = andList->left;
 		double orSelFactor = 1.0f;
@@ -260,6 +267,7 @@ std::pair<std::pair<unsigned long long int, double>, std::pair<int,int>> Statist
 						return make_pair(make_pair(-1,-1), make_pair(-1,-1));
 					} 
 					
+					hasJoin = true;
 					std::string lName = compOP->left->value;
 					std::string rName = compOP->right->value;
 					auto lAttInfo = getAttInfo(lName);
@@ -278,10 +286,14 @@ std::pair<std::pair<unsigned long long int, double>, std::pair<int,int>> Statist
 
 				} else if (leftOperand == NAME ) {
 					orSelFactor = getCNFSelectivity(compOP->left->value, orAttributes, orSelFactor, opCode);
+					auto lAttInfo = getAttInfo(compOP->left->value);
+					selectionTuples = lAttInfo.numTuples;
 
 				}
 				else if (rightOperand == NAME) {
 					orSelFactor = getCNFSelectivity(compOP->right->value, orAttributes, orSelFactor, opCode);
+					auto rAttInfo = getAttInfo(compOP->right->value);
+					selectionTuples = rAttInfo.numTuples;
 				}
 			orList = orList->rightOr;
 			}
@@ -292,45 +304,56 @@ std::pair<std::pair<unsigned long long int, double>, std::pair<int,int>> Statist
 		
 	}
 	
+	if(!hasJoin){
+		totalTuples = selectionTuples;
+	}
+	
 	return make_pair(make_pair(totalTuples, totSelFactor), make_pair(partNum1, partNum2));
+	
 		//return totalTuples*totSelFactor;
 }
 
 
 void Statistics::mergePartitions(Partition &p1, Partition &p2, int newTuples){
 
-	cout << "startMerge" << endl;
-
+	//cout << "startMerge" << endl;
+/*
 	for (auto ip: partitionsMap){
 		cout << "pNum: " << ip.first << " tuples: " << ip.second.numTuples << endl;
 	}
-	cout << "start" << endl;
+	*/
+	//cout << "start" << endl;
 
 	int oldPartNum = p2.partitionNum;
 	if (p1.partitionNum == p2.partitionNum) { cout<<"Should never happen" << endl; return;}
-	if (p2.partitionNum < p1.partitionNum){
-		oldPartNum = p1.partitionNum;
-		Partition &tmp = p2;
-		p2 = p1;
-		p1 = tmp;
-	}
 	//swap if needed and
 	//always merge into p1
 
 	p1.numTuples = newTuples;
-	p1.AttributeMap.insert(p2.AttributeMap.begin(), p2.AttributeMap.end());
-	p1.relations.insert(p1.relations.end(), p2.relations.begin(), p2.relations.end());
-
 	for (auto cRel: p2.relations){
+		//cout<<"cRel: " << cRel << "Updating to " << p1.partitionNum <<endl;
+		relationToPartitionMap.erase(cRel);
 		relationToPartitionMap.insert({cRel, p1.partitionNum});
 	}
+	
+	for (auto got : p2.AttributeMap) {
+		p1.AttributeMap.insert({got.first, got.second});
+	}
+	
+	
+	for (auto got : p2.relations) {
+		p1.relations.push_back(got);
+	}
+	
 
-	partitionsMap.erase(oldPartNum);
+	partitionsMap.erase(p2.partitionNum);
 
-	for (auto ip: partitionsMap){
+	/*
+	 for (auto ip: partitionsMap){
 		cout << "pNum: " << ip.first << " tuples: " << ip.second.numTuples << endl;
 	}
 	cout << "endMerge" << endl;
+	*/
 }
 
 Partition& Statistics::getPartition(int partNum){

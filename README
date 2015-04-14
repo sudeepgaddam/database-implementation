@@ -4,9 +4,22 @@ TEAM:
 SANDEEP DOMMARAJU 	(UFID: 2519 3611)
 SUDEEP REDDY GADDAM	(UFID: 4198 8919)
 
+
+To compile the driver, type
+	make test4_1
+
+To run the driver, type
+	./bin/test4_1
+
+
+
+
+
+
+
 readme 
 =========
-Test driver for Assignment 2 BigQ Milestone 1 (spring 2011 dbi) 
+Test driver for Assignment 4 BigQ Milestone 1 (spring 2011 dbi) 
 
 This test driver gives a menu-based interface to three options that allows you
 to test your code:
