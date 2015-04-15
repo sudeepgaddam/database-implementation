@@ -45,7 +45,7 @@ public:
 	~Statistics();
 	//Uses UO Maps
 	void AddRel(char *relName, int numTuples);
-	void AddAtt(char *relName, char *attName, int numDistincts);
+	void AddAtt(char *relName, char *attName, long numDistincts);
 	void CopyRel(char *oldName, char *newName);
 	//Read write Functions
 	void Read(const char *fromWhere);
@@ -56,10 +56,10 @@ public:
 
 	bool checkRelNames(char **relNames, int numToJoin);
 	vector<std::string> getSet(string relation);
-	AttInfo getAttInfo(string attr);
-	double getCNFSelectivity(string attName, vector<string> &orAttributes, double selFac, int oper);
-	std::pair<std::pair<unsigned long long int, double>, std::pair<int,int>> JoinCost(const struct AndList *andList);
-	void mergePartitions(Partition& p1, Partition& p2, int newTuples);
+	AttInfo getAttInfo(std::string attr, char **relNames, int numToJoin);
+	double getCNFSelectivity(std::string attName, std::vector<std::string> &orAttributes, double selFac, int oper, char **relNames, int numToJoin);
+	std::pair<std::pair<unsigned long long int, double>, std::pair<int,int>> JoinCost(const struct AndList *andList, char **relNames, int numToJoin);
+	void mergePartitions(Partition& p1, Partition& p2, double newTuples, double totSelFactor);
 	Partition& getPartition(int partNum);
 };
 
