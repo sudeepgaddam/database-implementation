@@ -20,7 +20,6 @@ static YY_BUFFER_STATE yyfunc_buf_state;
 void init_lexical_parser_func (char *src) { yyfunc_buf_state = yyfunc_scan_string (src); }
 void close_lexical_parser_func () { yyfunc_delete_buffer (yyfunc_buf_state); }
 
-
 %}
 
 
@@ -40,7 +39,33 @@ void close_lexical_parser_func () { yyfunc_delete_buffer (yyfunc_buf_state); }
 
 %%
 
+"SELECT"		return(SELECT);
+
+"FROM"			return(FROM);
+
+"WHERE"			return(WHERE);
+
+"SUM"			return(SUM);
+
+"AND"			return(AND);
+
+"GROUP"			return(GROUP);
+
+"DISTINCT"		return(DISTINCT);
+
+"BY"			return(BY);
+
+"OR"			return(OR);
+
+"AS"			return(AS);
+
 "("			return('(');
+
+"<"                     return('<');
+
+">"                     return('>');
+
+"="                     return('=');
 
 ")"    	        	return(')');
 
@@ -51,6 +76,8 @@ void close_lexical_parser_func () { yyfunc_delete_buffer (yyfunc_buf_state); }
 "/"    	        	return('/');
 
 "*"    	        	return('*');
+
+","    	        	return(',');
 
 -?[0-9]+ 	       {yyfunclval.actualChars = strdup(yyfunctext);
   			return(Int); 
@@ -63,6 +90,20 @@ void close_lexical_parser_func () { yyfunc_delete_buffer (yyfunc_buf_state); }
 [A-Za-z][A-Za-z0-9_-]* {yyfunclval.actualChars = strdup(yyfunctext);
   			return(Name);
 			}     
+
+[A-Za-z][A-Za-z0-9_-]*\.[A-Za-z][A-Za-z0-9_-]* {yyfunclval.actualChars = strdup(yyfunctext);
+  			return(Name);
+			}     
+
+\'[^'\n]*\'            {/* take care of ' in a string */
+                        if (yyfunctext[yyleng - 2] == '\\') {
+                                yymore();
+                        } else {
+                                yyfunclval.actualChars = strdup(yyfunctext + 1);
+                                yyfunclval.actualChars[strlen(yyfunclval.actualChars) - 1] = 0;
+                                return(String);
+                        }
+                        }
 
 \n                	yyfunclineno++;
 
@@ -79,5 +120,3 @@ void yyfuncerror(char *s) {
 int yyfuncwrap(void){
   return 1;
 }
-
-

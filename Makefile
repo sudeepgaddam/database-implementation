@@ -24,6 +24,10 @@ sampletest.out: libgtest.a
 	$(DD) $(SRC_DIR)/sampletest.cc $(BIN_DIR)/libgtest.a -o $(BIN_DIR)/sampletest
 	mv *.o $(BIN_DIR)
 
+test4_2: Record.o Comparison.o ComparisonEngine.o Schema.o File.o GenericDBFile.o SortedDBFile.o HeapDBFile.o DBFile.o BigQ.o Pipe.o Function.o RelOp.o Statistics.o y.tab.o yyfunc.tab.o lex.yy.o lex.yyfunc.o test4_2.o
+	$(CC) -pthread -o test4_2 Record.o Comparison.o ComparisonEngine.o Schema.o File.o GenericDBFile.o SortedDBFile.o HeapDBFile.o DBFile.o BigQ.o Pipe.o Function.o RelOp.o Statistics.o y.tab.o yyfunc.tab.o lex.yy.o lex.yyfunc.o test4_2.o -lfl
+	mv *.o $(BIN_DIR)
+	mv test4_2 $(BIN_DIR)
 
 test4_1: Record.o Comparison.o ComparisonEngine.o Schema.o File.o GenericDBFile.o SortedDBFile.o HeapDBFile.o DBFile.o BigQ.o Pipe.o Function.o RelOp.o Statistics.o y.tab.o yyfunc.tab.o lex.yy.o lex.yyfunc.o test4_1.o
 	$(CC) -pthread -o test4_1 Record.o Comparison.o ComparisonEngine.o Schema.o File.o GenericDBFile.o SortedDBFile.o HeapDBFile.o DBFile.o BigQ.o Pipe.o Function.o RelOp.o Statistics.o y.tab.o yyfunc.tab.o lex.yy.o lex.yyfunc.o test4_1.o -lfl
@@ -59,6 +63,10 @@ test2_2.o:
 	
 test4_1.o: 
 	$(DD) -g -c $(SRC_DIR)/test4_1.cc
+	
+test4_2.o: 
+	$(DD) -g -c $(SRC_DIR)/test4_2.cc
+	
 test.o: 
 	$(DD) -g -c $(SRC_DIR)/test.cc
 
@@ -121,7 +129,7 @@ y.tab.o: $(SRC_DIR)/Parser.y
 
 yyfunc.tab.o: $(SRC_DIR)/ParserFunc.y
 	yacc -p "yyfunc" -b "yyfunc" -d $(SRC_DIR)/ParserFunc.y
-	#sed $(tag) yyfunc.tab.c -e "s/  __attribute__ ((__unused__))$$/# ifndef __cplusplus\n  __attribute__ ((__unused__));\n# endif/" 
+	sed $(tag) yyfunc.tab.c -e "s/  __attribute__ ((__unused__))$$/# ifndef __cplusplus\n  __attribute__ ((__unused__));\n# endif/" 
 	g++ -w -c yyfunc.tab.c
 
 lex.yy.o: $(SRC_DIR)/Lexer.l
