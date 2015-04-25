@@ -18,8 +18,8 @@ void *selectfile_run (void *arg) {
 			outPipe->Insert(&rec);
 		}
 	}
-	cout<<"selectfile_run() count: "<<count<<endl;
-	cout<<"selectfile_run() passed: "<<passed<<endl;
+	//~ cout<<"selectfile_run() count: "<<count<<endl;
+	//~ cout<<"selectfile_run() passed: "<<passed<<endl;
 
 	outPipe->ShutDown();
 
@@ -249,7 +249,7 @@ void *sum_run (void *arg) {
 	} else {
 		sprintf (buffer, "%f|", doubleSum);
 	}
-	cout<<"Buffer:"<<buffer<< "doublesum"<<doubleSum<<endl;
+	//~ cout<<"Buffer:"<<buffer<< "doublesum"<<doubleSum<<endl;
 	Record newRec;
 	newRec.ComposeRecord(&out_sch,(const char *) &buffer[0]);
 	//newRec.Print(&out_sch);
@@ -386,7 +386,7 @@ void WriteOut::Use_n_Pages (int runlen) {
 		util2->run_len=RunPages;
 		pthread_create (&right_bigq_thread, NULL,run_bigq, (void*)util2);
 
-		cout << "RunPages: " << RunPages << endl;
+		//~ cout << "RunPages: " << RunPages << endl;
 		int countl=0, countr=0, recprocessed = 0;
 		//Sort Merge Join
 		while(inPipeL->Remove(&Lrec)) {
@@ -394,13 +394,13 @@ void WriteOut::Use_n_Pages (int runlen) {
 				in1->Insert(&Lrec);
 		}
 		in1->ShutDown();
-		cout<<"Printed Left relation Records #count: " << countl <<endl;
+		//~ cout<<"Printed Left relation Records #count: " << countl <<endl;
 		while(inPipeR->Remove(&Rrec)) {
 				countr++;//Rrec.Print(3);
 				in2->Insert(&Rrec);
 		}
 		in2->ShutDown();
-		cout<<"Printed Right relation Records #count: "<< countr <<endl;
+		//~ cout<<"Printed Right relation Records #count: "<< countr <<endl;
 
 		//
 		bool out1Empty = false;
@@ -483,7 +483,7 @@ void WriteOut::Use_n_Pages (int runlen) {
 			}
 			
 		}
-		cout << "processed recs: " << recprocessed << endl;
+		//~ cout << "processed recs: " << recprocessed << endl;
 		out1->ShutDown();
 		out2->ShutDown();		
 		outPipe->ShutDown();

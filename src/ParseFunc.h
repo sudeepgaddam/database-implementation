@@ -114,5 +114,27 @@ struct AndList {
         struct AndList *rightAnd;
 
 };
+struct CreateTable
+{
+	char* tableName;
+	struct NameList *sortkeys;
+	struct TableAtts *atts;
+
+};
+struct CrAttr
+{
+	char* value;
+	char *type;
+};
+struct TableAtts{
+
+    struct CrAttr *Op;
+    struct TableAtts *next;
+
+};
+struct Insert{
+    char *filename;
+    char *dbfile;
+};
 
 #endif

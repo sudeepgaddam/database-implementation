@@ -24,8 +24,8 @@ sampletest.out: libgtest.a
 	$(DD) $(SRC_DIR)/sampletest.cc $(BIN_DIR)/libgtest.a -o $(BIN_DIR)/sampletest
 	mv *.o $(BIN_DIR)
 
-test4_2: Record.o Comparison.o ComparisonEngine.o Schema.o File.o GenericDBFile.o SortedDBFile.o HeapDBFile.o DBFile.o BigQ.o Pipe.o Function.o RelOp.o Statistics.o  yyfunc.tab.o  lex.yyfunc.o QueryPlanner.o test4_2.o
-	$(CC) -pthread -o test4_2 Record.o Comparison.o ComparisonEngine.o Schema.o File.o GenericDBFile.o SortedDBFile.o HeapDBFile.o DBFile.o BigQ.o Pipe.o Function.o RelOp.o Statistics.o  yyfunc.tab.o lex.yyfunc.o QueryPlanner.o test4_2.o -lfl
+test4_2: Record.o Comparison.o ComparisonEngine.o Schema.o File.o GenericDBFile.o SortedDBFile.o HeapDBFile.o DBFile.o BigQ.o Pipe.o Function.o RelOp.o Statistics.o  yyfunc.tab.o  lex.yyfunc.o Compiler.o test4_2.o
+	$(CC) -pthread -o test4_2 Record.o Comparison.o ComparisonEngine.o Schema.o File.o GenericDBFile.o SortedDBFile.o HeapDBFile.o DBFile.o BigQ.o Pipe.o Function.o RelOp.o Statistics.o  yyfunc.tab.o lex.yyfunc.o Compiler.o test4_2.o -lfl
 	mv *.o $(BIN_DIR)
 	mv test4_2 $(BIN_DIR)
 
@@ -81,8 +81,8 @@ libgtest.a:
 Statistics.o: $(SRC_DIR)/Statistics.cc
 	$(CC) -g -c $(SRC_DIR)/Statistics.cc
 	
-QueryPlanner.o: $(SRC_DIR)/QueryPlanner.cc
-	$(CC) -g -c $(SRC_DIR)/QueryPlanner.cc
+Compiler.o: $(SRC_DIR)/Compiler.cc
+	$(CC) -g -c $(SRC_DIR)/Compiler.cc
 		
 Comparison.o: $(SRC_DIR)/Comparison.cc
 	$(CC) -g -c $(SRC_DIR)/Comparison.cc

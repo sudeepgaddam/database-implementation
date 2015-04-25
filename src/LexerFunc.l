@@ -36,8 +36,31 @@ void close_lexical_parser_func () { yyfunc_delete_buffer (yyfunc_buf_state); }
 /* This is the RULES section which defines how to "scan" and what action
  * to take for each token
  */
-
 %%
+
+"ON"			return(ON);
+
+"CREATE"		return(CREATE);
+
+"TABLE"			return(TABLE);
+
+"HEAP"			return(HEAP);
+
+"SORTED"		return(SORTED);
+
+"INSERT"		return(INSERT);
+
+"INTO"			return(INTO);
+
+"DROP"			return(DROP);
+
+"SET"		 	return(SET);
+
+"OUTPUT"		return(OUTPUT);
+
+"STDOUT"		return(STDOUT);
+
+"NONE"			return(NONE);
 
 "SELECT"		return(SELECT);
 
@@ -59,7 +82,7 @@ void close_lexical_parser_func () { yyfunc_delete_buffer (yyfunc_buf_state); }
 
 "AS"			return(AS);
 
-"("				return('(');
+"("			return('(');
 
 "<"                     return('<');
 
@@ -77,7 +100,9 @@ void close_lexical_parser_func () { yyfunc_delete_buffer (yyfunc_buf_state); }
 
 "*"    	        	return('*');
 
-","    	        	return(',');
+","			return(',');
+
+"'"			return ('\'');
 
 -?[0-9]+ 	       {yyfunclval.actualChars = strdup(yyfunctext);
   			return(Int); 
@@ -91,21 +116,22 @@ void close_lexical_parser_func () { yyfunc_delete_buffer (yyfunc_buf_state); }
   			return(Name);
 			}     
 
-[A-Za-z][A-Za-z0-9_-]*\.[A-Za-z][A-Za-z0-9_-]* {yyfunclval.actualChars = strdup(yyfunctext);
+[A-Za-z][A-Za-z0-9_-]*\.[A-Za-z][A-Za-z0-9_-]* {yyfunclval.actualChars = strdup(yytext);
   			return(Name);
 			}     
 
 \'[^'\n]*\'            {/* take care of ' in a string */
-                        if (yyfunctext[yyleng - 2] == '\\') {
+                        if (yytext[yyleng - 2] == '\\') {
                                 yymore();
                         } else {
-                                yyfunclval.actualChars = strdup(yyfunctext + 1);
+                                yyfunclval.actualChars = strdup(yytext + 1);
                                 yyfunclval.actualChars[strlen(yyfunclval.actualChars) - 1] = 0;
                                 return(String);
                         }
                         }
 
 \n                	yyfunclineno++;
+
 
 [ \t]             	;
 

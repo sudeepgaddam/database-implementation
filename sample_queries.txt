@@ -1,0 +1,4 @@
+SELECT n.n_name FROM nation AS n WHERE (n.n_nationkey > 1) AND (n.n_regionkey = 3)
+
+
+SELECT SUM(n.n_nationkey),n.n_regionkey FROM nation AS n WHERE (n.n_regionkey > 0) GROUP BY n.n_regionkey

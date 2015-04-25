@@ -298,7 +298,7 @@ void File :: Open (int fileLen, char *fName) {
         myFilDes = open (fName, mode, S_IRUSR | S_IWUSR);
 
 //#ifdef verbose
-	cout << "Opening file " << fName << " with "<< curLength << " pages.\n";
+	//~ cout << "Opening file " << fName << " with "<< curLength << " pages.\n";
 //#endif
 
 	// see if there was an error
