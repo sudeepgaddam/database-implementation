@@ -59,7 +59,7 @@ void close_lexical_parser_func () { yyfunc_delete_buffer (yyfunc_buf_state); }
 
 "AS"			return(AS);
 
-"("			return('(');
+"("				return('(');
 
 "<"                     return('<');
 

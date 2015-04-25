@@ -7,9 +7,9 @@
 	#include <stdlib.h>
 	#include <iostream>
 
-	extern "C" int yylex();
-	extern "C" int yyparse();
-	extern "C" void yyerror(char *s);
+	extern "C" int yyfunclex();
+	extern "C" int yyfuncparse();
+	extern "C" void yyfuncerror(char *s);
   
 	// these data structures hold the result of the parsing
 	struct FuncOperator *finalFunction; // the aggregate function (NULL if no agg)
