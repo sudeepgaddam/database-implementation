@@ -124,7 +124,7 @@ void Project::Use_n_Pages (int runlen) {
 void* run_bigq (void *arg) {
 	
 	bigq_util *t = (bigq_util *) arg;
-	BigQ b_queue(*(t->inpipe),*(t->outpipe),*(t->sort_order),t->run_len);
+	BigQ b_queue(*(t->in),*(t->out),*(t->sort_order),t->run_len);
 }
 
 
@@ -146,8 +146,8 @@ void *duprem_run (void *arg) {
 	in1 = new  (std::nothrow) Pipe(PIPE_BUFFER);
 	out1 = new (std::nothrow) Pipe(PIPE_BUFFER);
 	util1 = new bigq_util();
-	util1->inpipe=in1;
-	util1->outpipe=out1;
+	util1->in=in1;
+	util1->out=out1;
 	util1->sort_order=&myOrder;
 	// Hard coding to 1 for now
 	util1->run_len=1;
@@ -346,7 +346,7 @@ void WriteOut::Use_n_Pages (int runlen) {
 
 	}
 
-	void *join_run (void *arg) {
+	void *join_run_old (void *arg) {
 		Record Lrec,Rrec;
 		ComparisonEngine comp;
 		OrderMaker leftOrder, rightOrder;
@@ -370,8 +370,8 @@ void WriteOut::Use_n_Pages (int runlen) {
 		in1 = new  (std::nothrow) Pipe(PIPE_BUFFER);
 		out1 = new (std::nothrow) Pipe(PIPE_BUFFER);
 		util1 = new bigq_util();
-		util1->inpipe=in1;
-		util1->outpipe=out1;
+		util1->in=in1;
+		util1->out=out1;
 		util1->sort_order=&leftOrder;
 		util1->run_len=RunPages;
 		pthread_create (&left_bigq_thread, NULL,run_bigq, (void*)util1);
@@ -384,8 +384,8 @@ void WriteOut::Use_n_Pages (int runlen) {
 		in2 = new  (std::nothrow) Pipe(PIPE_BUFFER);
 		out2 = new (std::nothrow) Pipe(PIPE_BUFFER);
 		util2 = new bigq_util();
-		util2->inpipe=in2;
-		util2->outpipe=out2;
+		util2->in=in2;
+		util2->out=out2;
 		util2->sort_order=&rightOrder;
 		util2->run_len=RunPages;
 		pthread_create (&right_bigq_thread, NULL,run_bigq, (void*)util2);
@@ -493,7 +493,7 @@ void WriteOut::Use_n_Pages (int runlen) {
 		outPipe->ShutDown();
 	}
 
-	void Join::Run (Pipe &inPipeL, Pipe &inPipeR, Pipe &outPipe, CNF &selOp, Record &literal) { 
+	/*void Join::Run_old (Pipe &inPipeL, Pipe &inPipeR, Pipe &outPipe, CNF &selOp, Record &literal) { 
 		
 		join_util *jutil = new join_util();
 		jutil->inPipeL = &inPipeL;
@@ -504,7 +504,7 @@ void WriteOut::Use_n_Pages (int runlen) {
 		jutil->RunPages = RunPages>0?RunPages:1;
 		pthread_create (&thread, NULL, join_run, (void *)jutil);
 			
-	}
+	}*/
 	
 	void Join::WaitUntilDone () { 
 		pthread_join (thread, NULL);
@@ -649,3 +649,436 @@ void GroupBy::Use_n_Pages (int runlen) {
 
 }
 
+
+
+//-----------------Join-------------------------
+//Pipe &inPipeL, Pipe &inPipeR, Pipe &outPipe, CNF &selOp, Record &literal
+void* join_run(void* arg) {
+	//cout<<"sss"<<endl;
+	join_util* j_data = (join_util*) arg;
+
+	Pipe *inPipeL = j_data->inPipeL;
+	Pipe *inPipeR = j_data->inPipeR;
+	Pipe *outPipe = j_data->outPipe;
+	CNF *selOp = j_data->selOp;
+	Record *literal = j_data->literal;
+	int mem_pages = j_data->RunPages;
+
+	//cout<<"dkdkd"<<endl;;
+	OrderMaker left, right;
+	int use_sort_merge;
+	use_sort_merge = selOp->GetSortOrders(left, right);
+	ComparisonEngine comp;
+//	cout << "use merge " << use_sort_merge << endl;
+	int join_calc_done = 0, numAttsLeft, numAttsRight, numAttsToKeep,
+			startOfRight;
+	int* attsToKeep;
+	//Sort Merge Join
+	//use_sort_merge=0;
+	if (use_sort_merge) {
+		Record rec1, rec2;
+		//cout<<"sm1"<<endl;
+		//inPipeL->Remove(&rec1);
+		//inPipeR->Remove(&rec2);
+
+		//cout<<"sm2"<<endl;
+		Pipe* PipeL;
+		Pipe* PipeR;
+		PipeL = new (std::nothrow) Pipe(PIPE_BUFFER);
+		PipeR = new (std::nothrow) Pipe(PIPE_BUFFER);
+		//cout<<"sm3"<<endl;
+		//pthread_t thread1,thread2;
+		bigq_util* util1 = new (std::nothrow) bigq_util();
+		util1->in = inPipeL;
+		util1->out = PipeL;
+		util1->run_len = mem_pages;
+		util1->sort_order = &left;
+
+		//cout<<"sm4"<<endl;
+		bigq_util* util2 = new (std::nothrow) bigq_util();
+		util2->in = inPipeR;
+		util2->out = PipeR;
+		util2->run_len = mem_pages;
+		util2->sort_order = &right;
+
+		pthread_t thread1, thread2;
+		//cout<<"sm5"<<endl;
+		pthread_create(&thread1, NULL, run_bigq, (void*) util1);
+
+		pthread_create(&thread2, NULL, run_bigq, (void*) util2);
+
+
+		int q1_status = PipeL->Remove(&rec1);
+		int q2_status = PipeR->Remove(&rec2);
+		//int q2_status;
+		//cout<<"while true0"<<endl;
+		int cnt = 0;
+
+		Record mergedRecord;
+
+		while (true) {
+			//cout<<q1_status<<" "<<q2_status<<endl;
+			if (q1_status && q2_status) {
+
+				if (comp.Compare(&rec1, &left, &rec2, &right) < 0) {
+					//cout<<"p1\n";
+					q1_status = PipeL->Remove(&rec1);
+					//cout<<cnt++<<endl;
+					continue;
+
+				} else if (comp.Compare(&rec1, &left, &rec2, &right) > 0) {
+					//cout<<"p2\n";
+					q2_status = PipeR->Remove(&rec2);
+					continue;
+				} else {
+					//cout<<cnt++<<endl;
+
+					//Compute cross product
+					Record* temp = new (std::nothrow) Record();
+					temp->Consume(&rec2);
+					vector<Record*> rec_vector;
+
+					while (q2_status
+							&& !comp.Compare(&rec1, &left, temp, &right)) {
+						//cout<<"2\n";
+						//cout<<cnt++<<endl;
+						rec_vector.push_back(temp);
+						temp = new (std::nothrow) Record();
+						q2_status = PipeR->Remove(temp);
+					}
+
+					if (q2_status)
+						rec2.Consume(temp);
+
+					delete temp;
+					temp = NULL;
+					//if(!rec1.bits) cout<<"1 culprit\n";
+					//if(!rec_vector.front()->bits) cout<<"2 culprit\n";
+					while (q1_status
+							&& !comp.Compare(&rec1, &left, rec_vector.front(),
+									&right)) {
+
+						for (int i = 0; i < rec_vector.size(); i++) {
+							if (comp.Compare(&rec1, rec_vector[i], literal,
+									selOp)) {
+								//cout<<"1"<<endl;
+								if (!join_calc_done) {
+									numAttsLeft = ((((int*) (rec1.bits))[1])
+											/ sizeof(int)) - 1;
+									numAttsRight =
+											((((int*) (rec_vector[i]->bits))[1])
+													/ sizeof(int)) - 1;
+									numAttsToKeep = numAttsLeft + numAttsRight;
+
+									attsToKeep =
+											new (std::nothrow) int[numAttsToKeep];
+									int k;
+									for (k = 0; k < numAttsLeft; k++) {
+										attsToKeep[k] = k;
+									}
+
+									startOfRight = k;
+
+									for (int l = 0; l < numAttsRight;
+											l++, k++) {
+										attsToKeep[k] = l;
+									}
+									join_calc_done = 1;
+								}
+
+								mergedRecord.MergeRecords(&rec1, rec_vector[i],
+										numAttsLeft, numAttsRight, attsToKeep,
+										numAttsToKeep, startOfRight);
+								outPipe->Insert(&mergedRecord);
+								//cout<<"pipe written\n";
+
+							}
+						}
+						q1_status = PipeL->Remove(&rec1);
+						//cout<<cnt++<<endl;
+
+					}
+
+					for (int i = 0; i < rec_vector.size(); i++) {
+						delete rec_vector[i];
+					}
+
+					rec_vector.empty();
+				}
+			}
+
+			else {
+				break;
+			}
+		}
+		//cout<<"if done\n";
+		delete PipeL;
+		delete PipeR;
+		delete attsToKeep;
+		//return;
+	} else {
+		//Block Nested Loop Join
+
+		Page p;
+		int count = 0;
+		vector<Record*> rec_vector1;
+		vector<Record*> rec_vector2;
+		int rec1_status = 0;
+		int file_ready = 0;
+		Record rec1, rec2;
+		Record* temp;
+		File f;
+		f.Open(0, "temp.bin");
+		int cur_page = 0;
+		int scan_ptr = 0;
+		int pipe2_status = 0;
+//		cout << "mem_pages " << mem_pages << endl;
+		//exit(1);
+		int cnt = 0, cnt2 = 0;
+		//while (inPipeL->Remove(&rec1)) {
+		//	cout<<cnt++<<endl;
+		//}
+		//exit(1);
+		while (true) {
+			//cout<<"rec1_status: "<<rec1_status<<endl;
+			//cout<<"count: "<<count<<endl;
+			if ((rec1_status = inPipeL->Remove(&rec1))
+					&& count < (mem_pages - 1)) {
+				//cout<<"j1\n";
+				//if(!rec1.bits) cout<<"fedrer\n";
+//				cout << "cnt: " << cnt2++ << endl;
+				//cout<<"rec1_status: "<<rec1_status<<endl;
+				if (!p.Append(&rec1)) {
+					//cout<<"j2\n";
+					//cout<<"numrecs: "<<p.numRecs<<endl;
+					temp = new (std::nothrow) Record();
+					while (p.GetFirst(temp)) {
+						//cout<<"cnt: "<<cnt++<<endl;
+						//Schema s("catalog","supplier");
+						//temp->Print(&s);
+						//if(!temp->bits) cout<<"federer\n";
+						rec_vector1.push_back(temp);
+						temp = new Record();
+						//if(!temp) cout<<"no mem cre"<<endl;
+					}
+					//if(!rec_vector1[0]->bits) cout<<"woah"<<endl;
+
+					delete temp;
+					temp = NULL;
+					p.Append(&rec1);
+					//p.EmptyItOut();
+					count++;
+//					cout << "count: " << count << endl;
+				}
+
+			} else {
+				cnt += rec_vector1.size();
+				//cout<<"recs: "<<cnt<<endl;
+				//cout<<"rec1_status: "<<rec1_status<<endl;
+//				if (file_ready)
+//					cout << "file is ready\n";
+				//cout<<"j3"<<endl;
+				int scan_done = 0, scan_ptr = 0;
+				Page scan_page;
+				//cnt=0;
+
+				if (count < mem_pages - 1) {
+					//cout<<"in here\n";
+					temp = new (std::nothrow) Record();
+					while (p.GetFirst(temp)) {
+						//if(!temp->bits)	cout<<"nadal"<<endl;
+						rec_vector1.push_back(temp);
+						temp = new (std::nothrow) Record();
+					}
+					delete temp;
+					temp = NULL;
+				}
+
+				while (true) {
+					if (!file_ready) {
+						//First time when relation2 file not ready
+						//int cnt=0;
+						while ((pipe2_status = inPipeR->Remove(&rec2))
+								&& scan_page.Append(&rec2)) {
+							//cout<<cnt++<<endl;
+							//cout<<"j4"<<endl;
+						}
+
+						//vector<Record*> temp_rec_vector;
+						Page temp_page;
+						Record* temp1;
+						//cout<<"pip2 stat"<<pipe2_status<<endl;
+						//cout<<"cnt: "<<cnt<<endl;
+						temp = new (std::nothrow) Record();
+						temp1 = new (std::nothrow) Record();
+						while (scan_page.GetFirst(temp)) {
+							temp1->Copy(temp);
+							rec_vector2.push_back(temp);
+							temp_page.Append(temp1);
+							temp = new (std::nothrow) Record();
+							temp1 = new (std::nothrow) Record();
+						}
+						delete temp;
+						delete temp1;
+						temp = NULL;
+						temp1 = NULL;
+
+						//cnt+=rec_vector2.size();
+						//cout<<"temp: "<<cnt<<endl;
+						f.AddPage(&temp_page, cur_page++);
+						temp_page.EmptyItOut();
+						scan_page.EmptyItOut(); //
+
+					} else {
+						//cout<<"flen: "<<f.GetLength()<<endl;
+						//Scanning if relation2's file ready
+						if (scan_ptr < f.GetLength() - 1) {
+							f.GetPage(&scan_page, scan_ptr++);
+							temp = new (std::nothrow) Record();
+							while (scan_page.GetFirst(temp)) {
+								rec_vector2.push_back(temp);
+								temp = new (std::nothrow) Record();
+
+							}
+							delete temp;
+							temp = NULL;
+							scan_page.EmptyItOut();
+							//cnt+=rec_vector2.size();
+							//cout<<"temp: "<<cnt<<endl;
+						} else
+							scan_done = 1;
+					}
+
+					//cout<<"flen: "<<f.GetLength()<<endl;
+
+//					else {
+//						count=0;
+//						p.Append(&rec1);
+//					}
+
+					cnt += rec_vector2.size();
+					//cout<<"recs1: "<<rec_vector1.size()<<endl;
+					//cout<<"recs2: "<<rec_vector2.size()<<endl;
+
+					for (int i = 0; i < rec_vector1.size(); i++) {
+						for (int j = 0; j < rec_vector2.size(); j++) {
+//							if(!rec_vector1[i]->bits) {
+//								cout<<"i: "<<i<<endl;
+//								cout<<"culprit1"<<endl;
+//							}
+							//if(!rec_vector2[j]->bits) cout<<"culprit2"<<endl;
+							if (comp.Compare(rec_vector1[i], rec_vector2[j],
+									literal, selOp)) {
+								//cout<<"j6"<<endl;
+								Record mergedRecord;
+								if (!join_calc_done) {
+									numAttsLeft =
+											((((int*) (rec_vector1[i]->bits))[1])
+													/ sizeof(int)) - 1;
+									numAttsRight =
+											((((int*) (rec_vector2[j]->bits))[1])
+													/ sizeof(int)) - 1;
+									numAttsToKeep = numAttsLeft + numAttsRight;
+
+									attsToKeep =
+											new (std::nothrow) int[numAttsToKeep];
+									int k;
+									for (k = 0; k < numAttsLeft; k++) {
+										attsToKeep[k] = k;
+									}
+
+									startOfRight = k;
+
+									for (int l = 0; l < numAttsRight;
+											l++, k++) {
+										attsToKeep[k] = l;
+									}
+									join_calc_done = 1;
+								}
+
+								mergedRecord.MergeRecords(rec_vector1[i],
+										rec_vector2[j], numAttsLeft,
+										numAttsRight, attsToKeep, numAttsToKeep,
+										startOfRight);
+								outPipe->Insert(&mergedRecord);
+								//cout<<"pipe written\n";
+
+							}
+						}
+						//delete rec_vector1[i];
+						//rec_vector1[i]=NULL;
+					}
+
+					for (int i = 0; i < rec_vector2.size(); i++) {
+						delete rec_vector2[i];
+						rec_vector2[i] = NULL;
+					}
+
+					//rec_vector1.clear();
+					rec_vector2.clear();
+
+					//cout<<"pipe2_status :"<<pipe2_status<<"file_ready: "<<file_ready<<endl;
+					if (!pipe2_status && !file_ready) {
+						file_ready = 1;
+						break;
+					} else if (!file_ready) {
+//						temp= new (std::nothrow) Record();
+//						temp->Consume(&rec2);
+//						rec_vector2.push_back(temp);
+//						temp=NULL;
+						scan_page.Append(&rec2);
+					}
+
+					if (scan_done) {
+						//scan_ptr=0;
+						break;
+					}
+
+				}
+
+				for (int i = 0; i < rec_vector1.size(); i++) {
+					delete rec_vector1[i];
+					rec_vector1[i] = NULL;
+				}
+				//cout<<"recs1: "<<rec_vector1.size()<<endl;
+				//cout<<"recs2: "<<cnt<<endl;
+
+				rec_vector1.clear();
+
+				if (count >= (mem_pages - 1)) {
+					p.Append(&rec1);
+					cnt++;
+					count = 0;
+
+					//continue;
+				} else
+					break;
+
+				//if(!rec1_status) break;
+
+			}
+			//cout<<"cnt2: "<<cnt2++<<endl;
+		}
+
+		f.Close(); //Tempfile close
+		remove("temp.bin"); //Deleting the temp file
+	}
+	//delete PipeR;
+
+	outPipe->ShutDown();
+
+}
+
+
+void Join::Run (Pipe &inPipeL, Pipe &inPipeR, Pipe &outPipe, CNF &selOp, Record &literal) { 
+		
+		join_util *jutil = new join_util();
+		jutil->inPipeL = &inPipeL;
+		jutil->inPipeR = &inPipeR;
+		jutil->outPipe = &outPipe;
+		jutil->selOp = &selOp;
+		jutil->literal = &literal;
+		jutil->RunPages = RunPages>0?RunPages:1;
+		pthread_create (&thread, NULL, join_run, (void *)jutil);
+			
+	}

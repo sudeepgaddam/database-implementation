@@ -15,3 +15,14 @@ FROM customer AS c, orders AS o
 WHERE (c.c_custkey = o.o_custkey) AND
 	  (o.o_totalprice < 10000.0)
 ANSWER: 1.33123e+08 (17.31 sec) //double: [22855.6]
+
+
+SELECT l.l_orderkey, l.l_partkey, l.l_suppkey FROM lineitem AS l WHERE (l.l_returnflag = 'R') AND (l.l_discount < 0.04 OR l.l_shipmode = 'MAIL') AND (l.l_orderkey > 5000 AND l.l_orderkey < 6000)
+//semantic error?
+
+SELECT SUM (l.l_discount)
+FROM customer AS c, orders AS o, lineitem AS l
+WHERE (c.c_custkey = o.o_custkey) AND
+	  (o.o_orderkey = l.l_orderkey) AND
+	  (c.c_name = 'Customer#000070919') AND
+	  (l.l_quantity > 30.0) AND (l.l_discount < 0.03)

@@ -206,7 +206,7 @@ int SortedDBFile:: GetPage (Page *putItHere, off_t whichPage) {
 void* run_q (void *arg) {
 	
 	bigq_util *t = (bigq_util *) arg;
-	BigQ b_queue(*(t->inpipe),*(t->outpipe),*(t->sort_order),t->run_len);
+	BigQ b_queue(*(t->in),*(t->out),*(t->sort_order),t->run_len);
 }
 
 
@@ -227,8 +227,8 @@ void SortedDBFile::Merge(){
 		in1 = new  (std::nothrow) Pipe(PIPE_BUFFER);
 		out1 = new (std::nothrow) Pipe(PIPE_BUFFER);
 		util1 = new bigq_util();
-		util1->inpipe=in1;
-		util1->outpipe=out1;
+		util1->in=in1;
+		util1->out=out1;
 		util1->sort_order=myOrder;
 		util1->run_len=runLength;
 		
@@ -300,8 +300,8 @@ void SortedDBFile::SwitchMode() {
 		in = new  (std::nothrow) Pipe(PIPE_BUFFER);
 		out = new (std::nothrow) Pipe(PIPE_BUFFER);
 		util = new bigq_util();
-		util->inpipe=in;
-		util->outpipe=out;
+		util->in=in;
+		util->out=out;
 		util->sort_order=myOrder;
 		util->run_len=runLength;
 		pthread_create (&thread1, NULL,run_q, (void*)util);
