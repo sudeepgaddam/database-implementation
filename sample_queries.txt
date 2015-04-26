@@ -2,3 +2,16 @@ SELECT n.n_name FROM nation AS n WHERE (n.n_nationkey > 1) AND (n.n_regionkey = 
 
 
 SELECT SUM(n.n_nationkey),n.n_regionkey FROM nation AS n WHERE (n.n_regionkey > 0) GROUP BY n.n_regionkey
+
+SELECT n.n_name, n.n_nationkey, r.r_regionkey FROM nation AS n, region AS r WHERE (n.n_regionkey = r.r_regionkey) //returned 2 recs !!
+
+SELECT SUM (n.n_nationkey) FROM nation AS n
+
+SELECT SUM (ps.ps_supplycost) FROM part AS p, supplier AS s, partsupp AS ps WHERE (p.p_partkey = ps.ps_partkey) AND (s.s_suppkey = ps.ps_suppkey) AND (s.s_acctbal > 2500.0) //if jus 2500 mismatch type
+ANSWER: 2.74243e+08 (5.91 sec) //double: [4403.84]
+
+SELECT SUM (c.c_acctbal)
+FROM customer AS c, orders AS o
+WHERE (c.c_custkey = o.o_custkey) AND
+	  (o.o_totalprice < 10000.0)
+ANSWER: 1.33123e+08 (17.31 sec) //double: [22855.6]

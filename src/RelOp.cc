@@ -13,7 +13,11 @@ void *selectfile_run (void *arg) {
 	Record *literal = sfutil->literal;
 	while (inFile->GetNext(rec)) {
 		count++;
-		if (comp.Compare(&rec,literal, selOp)) {
+		if (selOp == NULL){ //TODO - condition added to handle SelectFile - CNF = NULL; sampleQueries (3)
+			passed++;
+			outPipe->Insert(&rec);
+		}
+		else if (comp.Compare(&rec,literal, selOp)) {
 			passed++;
 			outPipe->Insert(&rec);
 		}
