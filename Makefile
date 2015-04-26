@@ -16,12 +16,15 @@ ifdef linux
 tag = -n
 endif
 
-googletest: libgtest.a test
-	$(DD) $(SRC_DIR)/googletest.cc $(BIN_DIR)/libgtest.a -o $(BIN_DIR)/googletest $(BIN_DIR)/Record.o $(BIN_DIR)/Comparison.o $(BIN_DIR)/ComparisonEngine.o $(BIN_DIR)/Schema.o $(BIN_DIR)/File.o $(BIN_DIR)/y.tab.o $(BIN_DIR)/lex.yy.o $(BIN_DIR)/DBFile.o
+googletest: libgtest.a sampletest
+	$(DD) $(SRC_DIR)/googletest.cc $(BIN_DIR)/libgtest.a -o $(BIN_DIR)/googletest $(BIN_DIR)/Record.o $(BIN_DIR)/Comparison.o $(BIN_DIR)/ComparisonEngine.o $(BIN_DIR)/Schema.o $(BIN_DIR)/File.o $(BIN_DIR)/GenericDBFile.o $(BIN_DIR)/SortedDBFile.o $(BIN_DIR)/HeapDBFile.o $(BIN_DIR)/DBFile.o $(BIN_DIR)/BigQ.o $(BIN_DIR)/Pipe.o $(BIN_DIR)/Function.o $(BIN_DIR)/RelOp.o $(BIN_DIR)/Statistics.o $(BIN_DIR)/yyfunc.tab.o  $(BIN_DIR)/lex.yyfunc.o 	
 	#mv *.o $(BIN_DIR)
 
 sampletest.out: libgtest.a
 	$(DD) $(SRC_DIR)/sampletest.cc $(BIN_DIR)/libgtest.a -o $(BIN_DIR)/sampletest
+	mv *.o $(BIN_DIR)
+
+sampletest: Record.o Comparison.o ComparisonEngine.o Schema.o File.o GenericDBFile.o SortedDBFile.o HeapDBFile.o DBFile.o BigQ.o Pipe.o Function.o RelOp.o Statistics.o  yyfunc.tab.o  lex.yyfunc.o Compiler.o 
 	mv *.o $(BIN_DIR)
 
 test4_2: Record.o Comparison.o ComparisonEngine.o Schema.o File.o GenericDBFile.o SortedDBFile.o HeapDBFile.o DBFile.o BigQ.o Pipe.o Function.o RelOp.o Statistics.o  yyfunc.tab.o  lex.yyfunc.o Compiler.o test4_2.o
@@ -77,6 +80,7 @@ libgtest.a:
 	g++ -w -isystem $(GTEST_DIR)/include -I$(GTEST_DIR) -pthread -c $(GTEST_DIR)/src/gtest-all.cc
 	ar -rv libgtest.a gtest-all.o	
 	mv libgtest.a $(CURR_DIR)/bin
+
 	
 Statistics.o: $(SRC_DIR)/Statistics.cc
 	$(CC) -g -c $(SRC_DIR)/Statistics.cc
